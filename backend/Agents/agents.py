@@ -4,19 +4,24 @@ import matplotlib.animation as animation
 from shapely.geometry import Point, Polygon
 
 # Class for pedestrian
+# Class for pedestrian
 class Pedestrian:
-    def __init__(self, r, m, T, A, B, v_desired, boundary_min, boundary_max, min_distance,k):
-        self.r = r #postition
-        self.m = m #masa
-        self.T = T #time
-        self.A = A #intensidad de la fuerza repulsiva entre los peatones
-        self.B = B #como la fuerza cambia en la distancia
-        self.v_desired = v_desired #velocidty
-        self.boundary_min = boundary_min #el límite inferior del espacio en el que se mueve el peatón.
-        self.boundary_max = boundary_max #el límite superior del espacio en el que se mueve el peatón.
-        self.min_distance = min_distance #la distancia mínima que el peatón debe mantener con respecto a otros peatones.
-        self.v = np.zeros_like(r) #velocidad actual del peaton
-        self.k = k #constante relacionada con la simulacion de matplotlib   
+    def __init__(self, p: np.array, m: float, t: float, A: float, B: float, j: float, r: float,
+                 k: float, K: float, v_desired: float, boundary_min: np.array, boundary_max: np.array):
+        self.p = p                  # posición
+        self.m = m                  # masa
+        self.v = np.zeros_like(p)   # velocidad
+        self.t = t                  # tiempo de actualización
+        self.A = A                  # intensidad de la fuerza repulsiva entre peatones
+        self.B = B                  # factor de cambio de la fuerza repulsiva respecto la distancia
+        self.j = j                  # la distancia mínima que el peatón debe mantener con respecto a otros
+        self.r = r                  # radio del peatón            
+        self.k = k                  # constante de fuerza corporal
+        self.K = K                  # constante de fricción
+
+        self.v_desired = v_desired          # velocidad deseada
+        self.boundary_min = boundary_min    # límite inferior del espacio en el que se mueve el peatón
+        self.boundary_max = boundary_max    # límite superior del espacio en el que se mueve el peatón  
     
     def update_velocity(self, dt, pedestrians, walls, exits):
         # Initialize force
@@ -104,6 +109,7 @@ def update_position(pedestrian, dt):
     for i in range(2):
         if pedestrian.r[i] < pedestrian.boundary_min[i]:
             pedestrian.r[i] = pedestrian.boundary_min[i]
+            
             pedestrian.v[i] = -pedestrian.v[i]
         elif pedestrian.r[i] > pedestrian.boundary_max[i]:
             pedestrian.r[i] = pedestrian.boundary_max[i]
@@ -129,7 +135,7 @@ class Exit:
 
 
 # Set up parameters of simulation
-dt = 0.5
+dt = 0.7
 n_steps = 300
 
 # Set number of pedestrians
