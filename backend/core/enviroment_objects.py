@@ -3,6 +3,7 @@ from typing import List, Tuple
 import math
 
 NAGON_SIDES = 10
+LINE_THICKNESS = 0.5
 
 class EnvObj:
   @abstractmethod
@@ -42,7 +43,17 @@ class Wall(EnvObj):
     self.end = end
   
   def getRoundingBox(self) -> List[float]:
-    pass
+    x = self.start
+    y = self.end
+    thickness = LINE_THICKNESS
+    angle = math.atan2(y[1] - x[1], y[0] - x[0])
+    
+    p1 = (y[0] + thickness * math.cos(angle + math.pi / 2), y[1] + thickness * math.sin(angle + math.pi / 2))
+    p2 = (x[0] + thickness * math.cos(angle + math.pi / 2), x[1] + thickness * math.sin(angle + math.pi / 2))
+    p3 = (x[0] - thickness * math.cos(angle + math.pi / 2), x[1] - thickness * math.sin(angle + math.pi / 2))
+    p4 = (y[0] - thickness * math.cos(angle + math.pi / 2), y[1] - thickness * math.sin(angle + math.pi / 2))
+
+    return [p1,p2,p3,p4]
 
 class RectObs(RectShaped):
   def __init__(self, coords: List[Tuple[float,float]]):
