@@ -24,7 +24,40 @@ class Pedestrian:
         self.boundary_max = boundary_max    # límite superior del espacio en el que se mueve el peatón  
     
     def wall_force(self, walls: ['Wall']):
-        pass
+         # Inicializamos la aceleración.
+        fiW = np.zeros_like(self.p)
+
+        # Añadimos la fuerza de las interacciones con las paredes.
+        for wall in walls:
+            # Calculamos la distancia de este peatón al otro.
+            dif = self.wall_difference(wall)           # vector diferencia
+            diW = norm(dif)                            # norma del vector diferencia (distancia)
+
+            # Si el peatón está demasiado cerca de la pared.
+            if diW < self.j:
+                niW = dif / diW             # vector diferencia normalizado
+                r = self.r                  # radio del peatón
+                tiW = np.flip(niW)          # dirección tangencial
+                tiW[0] = -tiW[0]
+                dv = np.cross(self.v, tiW)  # velocidad tangencial
+
+                # Fuerza de repulsión entre peatones
+                f_repulsive = self.A * np.exp((r - diW) / self.B) * niW
+
+                # Fuerza corporal que el peatón ejerce a la pared.
+                # Si la distancia es menor que la suma de los radios, entonces los peatones se tocan.
+                # Solo en estos casos interviene la fuerza corporal entre peatones.
+                f_body = (self.k * (r - diW) if diW > r else 0) * niW
+
+                # Si la distancia es menor que la suma de los radios, entonces los peatones se tocan.
+                # Solo en estos casos interviene la fuerza corporal entre peatones.
+                f_friction = (self.K * (r - diW) * dv if diW > r else 0) * tiW
+
+                # Sumamos todas las fuerzas para calcular la fuerza total.
+                fiW += f_repulsive + f_body + f_friction
+
+        # Devolvemos la fuerza de repulsión total entre el peatón y las paredes.
+        return fiW
     
     # Función para calcular la fuerza de repulsión respecto al resto de peatones.
     def repulsion_force(self,  pedestrians: ['Pedestrian']):
