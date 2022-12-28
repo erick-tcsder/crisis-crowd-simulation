@@ -2,7 +2,7 @@
 
 ## Integrantes:
 - Erick A. Fonseca Pérez - **C312**   [@erick-tcsder](https://github.com/erick-tcsder)
-- Deborah Famadas Rodríguez - **C312** [@dbyta](https://github.com/dbyta)
+- Deborah Famadas Rodríguez - **C312** [@dbyta](https://github.com/deborahfam)
 - Gabriel Hernández Rodríguez - **C311** [@sour6ce](https://github.com/sour6ce)
 
 ## Descripcion General:
