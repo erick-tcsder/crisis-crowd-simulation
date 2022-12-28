@@ -28,7 +28,44 @@ class Pedestrian:
     
     # Función para calcular la fuerza de repulsión respecto al resto de peatones.
     def repulsion_force(self,  pedestrians: ['Pedestrian']):
-        pass
+        # Inicializamos la aceleración.
+        fij = np.zeros_like(self.p)
+
+        # Añadimos la fuerza de las interacciones con otros peatones.
+        for pedestrian in pedestrians:
+            # Ignoramos a este peatón (no tiene sentido considerar las interacciones consigo mismo).
+            if pedestrian == self:
+                continue
+
+            # Calculamos la distancia de este peatón al otro.
+            dif = pedestrian.p - self.p                # vector diferencia
+            dij = norm(dif)                            # norma del vector diferencia (distancia)
+
+            # Si el peatón está demasiado cerca de la pared.
+            if dij < self.j:
+                nij = dif / dij                            # vector diferencia normalizado
+                rij = self.r + pedestrian.r                # suma de los radios de ambos peatones
+                tij = np.flip(nij)                         # dirección tangencial
+                tij[0] = -tij[0]
+                dv = np.cross(pedestrian.v - self.v, tij)  # diferencia de velocidad tangencial
+
+                # Fuerza de repulsión entre peatones
+                f_repulsive = self.A * np.exp((rij - dij) / self.B) * nij
+
+                # Fuerza corporal entre peatones.
+                # Si la distancia es menor que la suma de los radios, entonces los peatones se tocan.
+                # Solo en estos casos interviene la fuerza corporal entre peatones.
+                f_body = (self.k * (rij - dij) if dij > rij else 0) * nij
+
+                # Si la distancia es menor que la suma de los radios, entonces los peatones se tocan.
+                # Solo en estos casos interviene la fuerza corporal entre peatones.
+                f_friction = (self.K * (rij - dij) * dv if dij > rij else 0) * tij
+
+                # Sumamos todas las fuerzas para calcular la fuerza total.
+                fij += f_repulsive + f_body + f_friction
+
+        # Devolvemos la fuerza de repulsión total entre los peatones.
+        return fij
     
     # Función para actualizar la velocidad del peatón.
     def update_velocity(self, dt: float, pedestrians: ['Pedestrian'], walls: ['Wall'], exits: ['Exit']):
