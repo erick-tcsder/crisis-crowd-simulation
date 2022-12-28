@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from numpy.linalg import norm
 import matplotlib.animation as animation
 from shapely.geometry import Point, Polygon
 
@@ -58,6 +59,38 @@ class Pedestrian:
 
         # Devolvemos la fuerza de repulsión total entre el peatón y las paredes.
         return fiW
+    
+    # Calcula la distancia de un peatón a una pared.
+    def wall_difference(self, wall: 'Wall'):
+        p = self.p    # posicion del peatón
+        p1 = wall.p1  # coordenada de inicio de la pared
+        p2 = wall.p2  # coordenada de final de la pared
+
+        # Comprobamos que el punto no corresponda a los extremos del segmento.
+        if all(p1 == p) or all(p2 == p):
+            return np.zeros_like(p)
+
+        # Calculamos el angulo entre AB y AP, si es mayor de 90 grados retornamos la distancia enre p1 y p
+        elif np.arccos(np.dot((p - p1) / norm(p - p1), (p2 - p1) / norm(p2 - p1))) > np.pi / 2:
+            return p - p1
+
+        # Calculamos el angulo entre AB y BP, si es mayor de 90 grados retornamos la distancia enre p2 y p.
+        elif np.arccos(np.dot((p - p2) / norm(p - p2), (p1 - p2) / norm(p1 - p2))) > np.pi / 2:
+            return p - p2
+
+        # Como ambos angulos son menores o iguales a 90 sabemos que podemos hacer una proyección ortogonal del punto.
+        # Considere el triangulo rectangulo que tiene la proyección ortogonal del peatón sobre la pared (p_o)
+        # como primer cateto, el segmento desde el primer extremo de la pared hasta el punto de corte (p1_o)
+        # como segundo cateto, y el segmento entre el peatón y el primer extremo de la pared como hipotenusa.
+        p_o = norm(np.cross(p2 - p1, p1 - p)) / norm(p2 - p1)  # Calculamos la longitud de la hipotenusa.
+        p_p1 = norm(p - p1)                                    # Calculamos la longitud del primer cateto.
+        p1_o = np.sqrt(p_p1**2 - p_o**2)                       # Calculamos la longitud del segundo cateto.
+
+        # Determinamos el punto o calculando explicitamente el vector ortogonal.
+        # Determinamos el vector p1_o normalizando p1_p2 y multiplicandolo por la norma de p1_o.
+        o = p1 + (p2 - p1) / norm(p2 - p1) * p1_o
+        # Devolvemos el vector ortogonal.
+        return p - o
     
     # Función para calcular la fuerza de repulsión respecto al resto de peatones.
     def repulsion_force(self,  pedestrians: ['Pedestrian']):
