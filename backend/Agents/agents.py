@@ -23,67 +23,41 @@ class Pedestrian:
         self.boundary_min = boundary_min    # límite inferior del espacio en el que se mueve el peatón
         self.boundary_max = boundary_max    # límite superior del espacio en el que se mueve el peatón  
     
-    def update_velocity(self, dt, pedestrians, walls, exits):
-        # Initialize force
-        f = np.zeros_like(self.r)
-
-        # Add forces from interactions with other pedestrians
-        for pedestrian in pedestrians:
-            if pedestrian == self:
-                continue
-
-            # Calculate distance to other pedestrian
-            r_diff = pedestrian.r - self.r
-            r_norm = np.linalg.norm(r_diff)
-            if r_norm < self.min_distance:
-                # Repulsive force between pedestrians
-                f_repulsive = self.A * np.exp((self.min_distance - r_norm) / self.B) * r_diff / r_norm
-                # Add sliding friction force
-                f_friction = -self.k * (r_norm - self.min_distance) * np.cross(self.v - pedestrian.v, r_diff) / r_norm
-            else:
-                f_repulsive = np.zeros_like(r_diff)
-                f_friction = np.zeros_like(r_diff)
-
-            # Add repulsive and friction forces to total force
-            f += f_repulsive + f_friction
-
-        # Add forces from interactions with walls
-        for wall in walls:
-            # Compute distance to wall
-            distance = distance_to_wall(self, wall)
-            if distance < self.T:
-            # Repulsive force between pedestrian and wall
-                if distance == 0:
-                        # Asignar un valor distinto a f_repulsive
-                    f_repulsive = np.zeros_like(self.r)
-                else:
-                    f_repulsive = self.A * np.exp((self.T - distance) / self.B) * (self.r - wall.r) / distance
-            else:
-                f_repulsive = np.zeros_like(self.r)
+    def wall_force(self, walls: ['Wall']):
+        pass
+    
+    # Función para calcular la fuerza de repulsión respecto al resto de peatones.
+    def repulsion_force(self,  pedestrians: ['Pedestrian']):
+        pass
+    
+    # Función para actualizar la velocidad del peatón.
+    def update_velocity(self, dt: float, pedestrians: ['Pedestrian'], walls: ['Wall'], exits: ['Exit']):
+        fij = self.repulsion_force(pedestrians)  # Calculamos la fuerza de repulsión de este peatón con los demás.
+        fiW = self.wall_force(walls)             # Calculamos la fuerza de repulsión de este peatón con las paredes.
 
         # Add forces from interactions with exits
         found_exit = False
         for exit in exits:
             # Calculate attraction force towards exit
-            r_exit = exit.r
-            r_diff = r_exit - self.r
-            r_norm = np.linalg.norm(r_diff)
-            if r_norm < self.T:
+            r_exit = exit.p
+            dif = r_exit - self.p
+            dij = np.linalg.norm(dif)
+            if dij < self.t:
                 # Attraction force decreases as distance to exit decreases
-                f_attraction = self.A * np.exp(-r_norm / self.B) * r_diff / r_norm
+                f_attraction = self.A * np.exp(-dij / self.B) * dif / dij
                 found_exit = True
             else:
-                f_attraction = np.zeros_like(r_diff)
+                f_attraction = np.zeros_like(dif)
 
             # Add attraction force to total force
-            f += f_attraction
+            fij += f_attraction
 
-        # If no exit was found, add a random force to the velocity
+        # If no exit was found, add A random force to the velocity
         if not found_exit:
-            f += np.random.uniform(-1, 1, size=2)
+            fij += np.random.uniform(-1, 1, size=2)
 
         # Update velocity according to acceleration equation
-        self.v += (f / self.m - self.v / self.T) * dt
+        self.v += (fij / self.m - self.v / self.t) * dt
 
         # Limit velocity to desired velocity
         v_norm = np.linalg.norm(self.v)
