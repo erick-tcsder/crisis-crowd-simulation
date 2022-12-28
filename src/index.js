@@ -3,11 +3,35 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import {createBrowserRouter,RouterProvider} from 'react-router-dom'
+
+
+const router = createBrowserRouter([
+  {
+    path: '/',
+    component: App,
+    children: [
+      {
+        path: '/map/new',
+        component: () => <div>new map</div>
+      },
+      {
+        path: '/simulation',
+        component: () => <div>simulation</div>
+      },
+      {
+        path: '/simulation/start',
+        component: () => <div>start simulation</div>
+      }
+    ],
+    errorElement: ()=><div>404</div>
+  }
+])
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <App />
+    <RouterProvider router={router}/>
   </React.StrictMode>
 );
 
