@@ -204,8 +204,7 @@ def a_star(navmesh: Navmesh, start: Point, end: Point) -> Tuple[List[Point], flo
             # the second point of the route in the A* and the real start point
             # is walkable, if that so then delete the first point in the route.
             # This will always shorten the path.
-            if LineString([start, route[1]]).within(navmesh.flat_polygon):
-                route=route[1:]
+            route, _ = clamp_route(navmesh, start, route)
             # Similar process but with the last points
             if LineString([end, route[-2]]).within(navmesh.flat_polygon):
                 route=route[:-1]
@@ -221,3 +220,13 @@ def a_star(navmesh: Navmesh, start: Point, end: Point) -> Tuple[List[Point], flo
             heap.heappush(h, HeapObject(weight(n, (w, route[-1])), route+[n]))
 
         passed.add(route[-1])
+
+
+def clamp_route(navmesh: Navmesh, point: Point, route: List[Point]) -> Tuple[List[Point], bool]:
+    """
+    Reduce the route if the given point can go directly to the next point on the route.
+    Returns the route and a boolean telling if it changed or not.
+    """
+    if LineString([point, route[1]]).within(navmesh.flat_polygon):
+        return (route[1:], True)
+    return (route, False)
