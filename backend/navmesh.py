@@ -4,7 +4,6 @@ from shapely import Point, Polygon, MultiPolygon, LineString
 from shapely.ops import triangulate
 from dataclasses import dataclass
 import heapq as heap
-from custom_profile import profile
 
 ADJACENT_MATRIX = Dict[Point, Set[Point]]
 
@@ -16,6 +15,7 @@ def get_cached_distance(p1: Point, p2: Point) -> float:
 
 @dataclass(slots=True)
 class Navmesh:
+    flat_polygon: MultiPolygon
     polygon: MultiPolygon
     adjacent: ADJACENT_MATRIX
     distances: Dict[Tuple[Point, Point], float]
@@ -46,7 +46,7 @@ def build_navmesh(
     # Adjacent list, tells what are the neighbors points of a point
     adj: ADJACENT_MATRIX = {}
 
-    nv = Navmesh(multi, {}, {})
+    nv = Navmesh(map, multi, {}, {})
     adj: ADJACENT_MATRIX = nv.adjacent
 
     for t in multi.geoms:
@@ -153,7 +153,6 @@ def a_star(navmesh: Navmesh, start: Point, end: Point) -> Tuple[List[Point], flo
     in order to simplify the search space and therefore not optimum is assured. Returns a route
     to follow as a list of points.
     """
-    # TODO: Fix slowness
     # TODO: Fix back-travel at start and end
 
     # First thing is to find the closest point in the navmesh to use as start and end
@@ -201,9 +200,20 @@ def a_star(navmesh: Navmesh, start: Point, end: Point) -> Tuple[List[Point], flo
 
         # The destination point was poped from the heap
         if route[-1].equals(a_star_e[0]):
+            # Patch to fix back-travel. Essentially check if the way between
+            # the second point of the route in the A* and the real start point
+            # is walkable, if that so then delete the first point in the route.
+            # This will always shorten the path.
+            if LineString([start, route[1]]).within(navmesh.flat_polygon):
+                route=route[1:]
+            # Similar process but with the last points
+            if LineString([end, route[-2]]).within(navmesh.flat_polygon):
+                route=route[:-1]
+                
             # So this is the route
             # Real start and end point must be added
-            return (([start]+route+[end]), w[0])
+            full_route = [start]+route+[end]
+            return (full_route, w[0])
 
         neighbors = neigh(route[-1])
 
