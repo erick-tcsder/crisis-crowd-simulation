@@ -2,9 +2,9 @@ from typing import Dict, List, Set, Tuple
 from shapely import Point, Polygon, MultiPolygon, LineString
 from shapely.ops import triangulate
 from dataclasses import dataclass
-import time
+import heapq as heap
 
-ADJACENT_MATRIX = Dict[Polygon, Set[Polygon]]
+ADJACENT_MATRIX = Dict[Point, Set[Point]]
 
 
 @dataclass(slots=True)
@@ -16,10 +16,15 @@ class Navmesh:
 def build_navmesh(
     map: Polygon,
     obstacles: List[Polygon],
+    space: float = .005
 ) -> Navmesh:
     map = MultiPolygon([map])
     for obs in obstacles:
         map = map.difference(obs)
+
+    # Space parameter define how much space is needed in an area
+    # allow a person go through it
+    map = map.buffer(-space, cap_style='flat', join_style='bevel')
 
     # Delaunay triangulation, works bad for non-convex
     tris = []
@@ -30,34 +35,30 @@ def build_navmesh(
 
     multi = MultiPolygon(tris)
 
-    # Stores for every edge the maximum two triangles that have it
-    twins: Dict[Tuple[Point, Point], List[Polygon]] = {}
-
-    # Adjacent list, tells what are the neighbors tris of a tri
+    # Adjacent list, tells what are the neighbors points of a point
     adj: ADJACENT_MATRIX = {}
 
     for t in multi.geoms:
+        center = Point(t.centroid)
         edge_t: LineString = t.boundary
         # Pair the points with the next one to get edges
         for edge in zip(edge_t.coords[:-1], edge_t.coords[1:]):
-            l = twins.get(edge, [])
+            # Sometimes shapely use tuples instead of point. Massive confusion.
+            edge = (Point(edge[0]), Point(edge[1]))
 
-            if len(l) == 0:
-                l = twins.get(
-                    (edge[1], edge[0]), [])  # may be in reverse
-                twins[(edge[1], edge[0])] = l
-            else:
-                twins[edge] = l
-            # t has this as an edge so add it
-            l.append(t)
+            n0 = adj.get(edge[0], set())
+            n1 = adj.get(edge[1], set())
 
-            # Already has two (the maximum)
-            if len(l) == 2:
-                # So they are neighbors
-                adj[l[0]] = adj.get(l[0], set())
-                adj[l[0]].add(l[1])
-                adj[l[1]] = adj.get(l[1], set())
-                adj[l[1]].add(l[0])
+            n0.add(edge[1])
+            n1.add(edge[0])
+            n0.add(center)
+            n1.add(center)
+
+            adj[edge[0]] = n0
+            adj[edge[1]] = n1
+
+            adj[center] = adj.get(center, set())
+            adj[center].update(edge)
 
     return Navmesh(multi, adj)
 
@@ -77,16 +78,12 @@ def approx_navmesh(navmesh: Navmesh, p: Point, allow_borders=True) -> Tuple[Poin
     """
     tris = list(navmesh.polygon.geoms)
 
-    start = time.time()
-
     # Find the tri with the minimum distance to the given point
     p_tri = (tris[0], p.distance(tris[0]))
     for t in tris[1:]:
         d = p.distance(t)
         if d < p_tri[1]:
             p_tri = (t, d)
-
-    print(f"Finished tri find in {time.time()-start:.3f}s")
 
     # If the distance is 0 or below is because is inside
     _in = p_tri[1] <= .0
@@ -109,33 +106,80 @@ def approx_navmesh(navmesh: Navmesh, p: Point, allow_borders=True) -> Tuple[Poin
         else:
             return (f_p[0], _in, False)  # The border was closer
     else:
-        #Just return the centroid if the borders are not valid
+        # Just return the centroid if the borders are not valid
         return (center, _in, True)
 
 
-def a_star(navmesh: Navmesh, start: Point, end: Point) -> Tuple[List[Point], Point, Point]:
+@dataclass(slots=True, order=True, unsafe_hash=True)
+class __HeapObjectBase:
+    weight: float
+
+
+class HeapObject(__HeapObjectBase):
+    __slots__ = ('route')
+
+    route: List[Point]
+
+    def __init__(self, weight: float, route: List[Point]):
+        super().__init__(weight)
+        self.route = route
+
+
+def a_star(navmesh: Navmesh, start: Point, end: Point) -> Tuple[List[Point], float]:
+    """
+    Find the closest-enough path from `start` to `end` using the given navmesh, is not actually
+    the closest path because the navmesh reduces the possible points where to find a path 
+    in order to simplify the search space and therefore not optimum is assured. Returns a route
+    to follow as a list of points.
+    """
+    # TODO: Fix slowness
+    # TODO: Fix back-travel at start and end
+
     # First thing is to find the closest point in the navmesh to use as start and end
+    a_star_s = approx_navmesh(navmesh, start)
+    a_star_e = approx_navmesh(navmesh, end)
 
-    tris = navmesh.polygon.geoms
+    # Heuristic function used, linear distance
+    def heur(p: Point, *_) -> float:
+        return p.distance(a_star_e[0])
 
-    # Get the closest tri to start point
-    start_tri = (tris[0], start.distance(tris[0]))
-    for t in tris[1:]:
-        d = start.distance(t)
-        if d < start_tri[1]:
-            start_tri = (t, d)
+    # Function to get all the neighbors possibles to a point
+    def neigh(p: Point, *_) -> Set[Point]:
+        return navmesh.adjacent[p]
 
-    # Get the closest tri to end point
-    end_tri = (tris[0], end.distance(tris[0]))
-    for t in tris[1:]:
-        d = end.distance(t)
-        if d < end_tri[1]:
-            end_tri = (t, d)
+    # Weight/distance function used for A* (distance_acc+heur).
+    def weight(p: Point, parent: Tuple[float, Point]) -> float:
+        # First point
+        if parent is None:
+            return heur(p)
 
-    # Get the closest point of each tri (Center or vertices)
-    st_points: List[Point] = list(start_tri[0].coords)+[start_tri[0].centroid]
-    end_points: List[Point] = list(end_tri[0].coords)+[end_tri[0].centroid]
+        last_w = parent[0]
+        last_p = parent[1]
 
-    start_pos = (st_points[0], start)
-    for p in st_points:
-        pass
+        # Remove last point heuristic to get pure accumulative distance
+        # Its possible to do this because heuristic function is fast
+        last_w -= heur(last_p)
+
+        # Accumulative distance until now plus the distance to go from
+        # the last point to this plus the value of the heuristic in this
+        # point
+        return (p.distance(last_p)+last_w)+heur(p)
+
+    h: List[HeapObject] = []  # Heap
+
+    heap.heappush(h, HeapObject(weight(a_star_s[0], None), [a_star_s[0]]))
+    while True:
+        o = heap.heappop(h)
+        w = o.weight
+        route = o.route
+
+        # The destination point was poped from the heap
+        if route[-1].equals(a_star_e[0]):
+            # So this is the route
+            # Real start and end point must be added
+            return (([start]+route+[end]), w)
+
+        neighbors = neigh(route[-1])
+
+        for n in neighbors:
+            heap.heappush(h, HeapObject(weight(n, (w, route[-1])), route+[n]))
