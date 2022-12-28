@@ -1,16 +1,24 @@
+from functools import lru_cache, total_ordering
 from typing import Dict, List, Set, Tuple
 from shapely import Point, Polygon, MultiPolygon, LineString
 from shapely.ops import triangulate
 from dataclasses import dataclass
 import heapq as heap
+from custom_profile import profile
 
 ADJACENT_MATRIX = Dict[Point, Set[Point]]
+
+
+@lru_cache(maxsize=None)
+def get_cached_distance(p1: Point, p2: Point) -> float:
+    return p1.distance(p2)
 
 
 @dataclass(slots=True)
 class Navmesh:
     polygon: MultiPolygon
     adjacent: ADJACENT_MATRIX
+    distances: Dict[Tuple[Point, Point], float]
 
 
 def build_navmesh(
@@ -38,6 +46,9 @@ def build_navmesh(
     # Adjacent list, tells what are the neighbors points of a point
     adj: ADJACENT_MATRIX = {}
 
+    nv = Navmesh(multi, {}, {})
+    adj: ADJACENT_MATRIX = nv.adjacent
+
     for t in multi.geoms:
         center = Point(t.centroid)
         edge_t: LineString = t.boundary
@@ -54,20 +65,25 @@ def build_navmesh(
             n0.add(center)
             n1.add(center)
 
+            # Call the function to create a cache of distances among points in the navmesh
+            get_cached_distance(edge[0], edge[1])
+            get_cached_distance(center, edge[1])
+            get_cached_distance(edge[0], center)
+
             adj[edge[0]] = n0
             adj[edge[1]] = n1
 
             adj[center] = adj.get(center, set())
             adj[center].update(edge)
 
-    return Navmesh(multi, adj)
+    return nv
 
 
 def approx_navmesh(navmesh: Navmesh, p: Point, allow_borders=True) -> Tuple[Point, bool, bool]:
     """
     Given a navmesh and a point gives the closest point o the navmesh to the given point.
     If `allow_borders` is `True` it can give points that are in the borders of the navmesh.
-    
+
     Returns a tuple (`p`,`in`,`center`) where:
     - `p` is the point of the navmesh.
     - `in` is a boolean that is `True` if the point given is at least inside the geometry
@@ -110,20 +126,25 @@ def approx_navmesh(navmesh: Navmesh, p: Point, allow_borders=True) -> Tuple[Poin
         return (center, _in, True)
 
 
-@dataclass(slots=True, order=True, unsafe_hash=True)
-class __HeapObjectBase:
-    weight: float
+@total_ordering
+class HeapObject:
+    __slots__ = ('weight', 'route')
 
-
-class HeapObject(__HeapObjectBase):
-    __slots__ = ('route')
-
+    weight: Tuple[float, float]
     route: List[Point]
 
-    def __init__(self, weight: float, route: List[Point]):
-        super().__init__(weight)
+    def __init__(self, weight: Tuple[float, float], route: List[Point]):
+        self.weight = weight
         self.route = route
 
+    def __eq__(self, __o: object) -> bool:
+        if isinstance(__o, HeapObject):
+            return sum(self.weight) == sum(__o.weight)
+        else:
+            return False
+
+    def __lt__(self, __o: object) -> bool:
+        return sum(self.weight) < sum(__o.weight)
 
 def a_star(navmesh: Navmesh, start: Point, end: Point) -> Tuple[List[Point], float]:
     """
@@ -139,31 +160,33 @@ def a_star(navmesh: Navmesh, start: Point, end: Point) -> Tuple[List[Point], flo
     a_star_s = approx_navmesh(navmesh, start)
     a_star_e = approx_navmesh(navmesh, end)
 
+    passed: Set[Point] = set()
+
     # Heuristic function used, linear distance
     def heur(p: Point, *_) -> float:
-        return p.distance(a_star_e[0])
+        return get_cached_distance(p, (a_star_e[0]))
 
     # Function to get all the neighbors possibles to a point
     def neigh(p: Point, *_) -> Set[Point]:
         return navmesh.adjacent[p]
 
     # Weight/distance function used for A* (distance_acc+heur).
-    def weight(p: Point, parent: Tuple[float, Point]) -> float:
+    def weight(p: Point, parent: Tuple[Tuple[float, float],
+                                       Point]) -> Tuple[float, float]:
         # First point
         if parent is None:
-            return heur(p)
+            return (.0, heur(p))
 
         last_w = parent[0]
         last_p = parent[1]
 
-        # Remove last point heuristic to get pure accumulative distance
-        # Its possible to do this because heuristic function is fast
-        last_w -= heur(last_p)
+        # Take only accumulative, don't use heuristic weight
+        last_w = last_w[0]
 
         # Accumulative distance until now plus the distance to go from
         # the last point to this plus the value of the heuristic in this
         # point
-        return (p.distance(last_p)+last_w)+heur(p)
+        return ((get_cached_distance(p, (last_p))+last_w), heur(p))
 
     h: List[HeapObject] = []  # Heap
 
@@ -173,13 +196,18 @@ def a_star(navmesh: Navmesh, start: Point, end: Point) -> Tuple[List[Point], flo
         w = o.weight
         route = o.route
 
+        if route[-1] in passed:
+            continue
+
         # The destination point was poped from the heap
         if route[-1].equals(a_star_e[0]):
             # So this is the route
             # Real start and end point must be added
-            return (([start]+route+[end]), w)
+            return (([start]+route+[end]), w[0])
 
         neighbors = neigh(route[-1])
 
         for n in neighbors:
             heap.heappush(h, HeapObject(weight(n, (w, route[-1])), route+[n]))
+
+        passed.add(route[-1])
