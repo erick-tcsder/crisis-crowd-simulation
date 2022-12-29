@@ -4,38 +4,37 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import {createBrowserRouter,RouterProvider} from 'react-router-dom'
+import { MapPage } from './pages/mapPage';
 
 
 const router = createBrowserRouter([
   {
     path: '/',
-    component: App,
+    element: <App/>,
     children: [
       {
         path: '/map/new',
-        component: () => <div>new map</div>
+        element: <MapPage/>
       },
       {
         path: '/simulation',
-        component: () => <div>simulation</div>
+        element: <div>simulation</div>
       },
       {
         path: '/simulation/start',
-        component: () => <div>start simulation</div>
+        element: <div>start simulation</div>
       }
     ],
-    errorElement: ()=><div>404</div>
+    errorElement: <div>404</div>
   }
 ])
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  <React.StrictMode>
     <RouterProvider router={router}/>
-  </React.StrictMode>
 );
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals(console.log);
+// reportWebVitals(console.log);
