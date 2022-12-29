@@ -7,8 +7,8 @@ from numpy.linalg import norm
 
 # Class for pedestrian
 class Pedestrian:
-    def __init__(self, p: np.array, m: float, t: float, A: float, B: float, j: float, r: float,
-                 k: float, K: float, v_desired: float, boundary_min: np.array, boundary_max: np.array):
+    def __init__(self, p: np.array, m: float, t: float, A: float, B: float, j: float, s: float, r: float,
+                 k: float, K: float, v0: float, boundary_min: np.array, boundary_max: np.array):
         self.p = p                      # position
         self.m = m                      # mass
         self.v = np.zeros_like(p)       # velocity
@@ -20,10 +20,11 @@ class Pedestrian:
         self.k = k                      # body force constant
         self.K = K                      # friction constant
 
-        self.v_desired = v_desired          # desired speed
+        self.v0 = v0             # desired speed
         self.boundary_min = boundary_min    # lower limit of the space in which the pedestrian moves
         self.boundary_max = boundary_max    # upper limit of the space in which the pedestrian moves
 
+        self.s = s
     # Función para calcular la fuerza de repulsión respecto al resto de peatones.
     def repulsion_force(self, pedestrians: ['Pedestrian']):
         # Initialize acceleration.
@@ -64,8 +65,8 @@ class Pedestrian:
     # Calculates the distance of a pedestrian to a wall.
     def wall_difference(self, wall: 'Wall'):
         p = self.p    # pedestrian position
-        p1 = wall.p1  # wall start coordinate
-        p2 = wall.p2  # wall end coordinate
+        p1 = wall.start  # wall start coordinate
+        p2 = wall.end  # wall end coordinate
 
         # Check that the point does not correspond to the ends of the segment.
         if all(p1 == p) or all(p2 == p):
@@ -125,38 +126,19 @@ class Pedestrian:
 
 
     # Function to update the pedestrian speed.
-    def update_velocity(self, dt: float, pedestrians: ['Pedestrian'], walls: ['Wall'], exits: ['Exit']):
+    def update_velocity(self, dt: float,e0: np.array, pedestrians: ['Pedestrian'], walls: ['Wall']):
         fij = self.repulsion_force(pedestrians)  # We calculate the force of repulsion of this pedestrian with the others.
         fiW = self.wall_force(walls)             # We calculate the repulsive force of this pedestrian with the walls.
 
-        # Add forces from interactions with exits
-        found_exit = False
-        for exit in exits:
-            # Calculate attraction force towards exit
-            r_exit = exit.p
-            dif = r_exit - self.p
-            dij = np.linalg.norm(dif)
-            if dij < self.t:
-                # Attraction force decreases as distance to exit decreases
-                f_attraction = self.A * np.exp(-dij / self.B) * dif / dij
-                found_exit = True
-            else:
-                f_attraction = np.zeros_like(dif)
-
-            # Add attraction force to total force
-            fij += f_attraction
-
-        # If no exit was found, add A random force to the velocity
-        if not found_exit:
-            fij += np.random.uniform(-1, 1, size=2)
-
-        # Update velocity according to acceleration equation
-        self.v += (fij / self.m - self.v / self.t) * dt
+        # We calculate the pedestrians aceleration
+        acc = (self.v0 * e0 - self.v) / self.t + (fij + fiW) / self.m
+        # Update
+        self.v += acc * dt
 
         # Limit velocity to desired velocity
-        v_norm = np.linalg.norm(self.v)
-        if v_norm > self.v_desired:
-            self.v *= self.v_desired / v_norm
+        v_norm = norm(self.v)
+        if v_norm > self.v0:
+            self.v *= self.v0 / v_norm
 
     # Function to update pedestrian speed
     def update_position(self):
@@ -172,36 +154,23 @@ class Pedestrian:
                 self.p[i] = self.boundary_max[i]
                 self.v[i] = -self.v[i]
 
-
-# def distance_to_wall(pedestrian, wall):
-#     # Create A Shapely Point object from pedestrian position
-#     point = Point(pedestrian.p)
-#     # Create A Shapely Polygon object from wall vertices
-#     polygon = Polygon(wall.vertices)
-#     # Calculate minimum distance between point and polygon
-#     distance = point.distance(polygon)
-#     return distance
-
 class Wall:
-    def __init__(self, vertices):
-        self.vertices = vertices
-        # Compute center of mass of wall
-        self.p = np.mean(vertices, axis=0)
-        self.p1 = np.array([1, 2])
-        self.p2 = np.array([3, 4])
+    def __init__(self, start, end):
+        self.start = start
+        self.end = end
 
     def draw(self):
-        plt.plot(self.vertices[:, 0], self.vertices[:, 1], 'k', lw=2)
+        plt.plot([self.start[0], self.end[0]], [self.start[1], self.end[1]], 'k', lw=2)
 
 
 class Exit:
-    def __init__(self, vertices):
-        self.vertices = vertices
-        # Compute center of mass of wall
-        self.p = np.mean(vertices, axis=0)
+    def __init__(self, start, end):
+        self.start = start
+        self.end = end
 
     def draw(self):
-        plt.plot(self.vertices[:, 0], self.vertices[:, 1], 'r', lw=2)
+        plt.plot([self.start[0], self.end[0]], [self.start[1], self.end[1]], 'r', lw=2)
+
 
 
 # Set up parameters of simulation
@@ -209,45 +178,64 @@ dt = 1 # Tiempo transcurrido entre pasos de la simulación
 n_steps = 300
 
 # Set number of pedestrians
-n_pedestrians = 100
+n_pedestrians = 10
 
 # Set up boundaries of simulation
 boundary_min = np.array([0, 0])
-boundary_max = np.array([10, 10])
+boundary_max = np.array([100, 100])
 
 # Set up mass of pedestrians
 m = 80
-
-# Set up parameters of interaction forces
-t = 1
-A = 1
-B = 0.5
-k = 1
-K = 1
-r = 0.5
-
 # Set up desired velocity of pedestrians
-v_desired = 5
-
+v0 = 5
+# Set up parameters of interaction forces
+t = 0.5
+# Repulsion force
+A = 2*10e3
+# Repulsion distance
+B = 0.08
+# Repulsion constants
+k = 1.2*10e5
+K = 2.4*10e5
+# Radios of pedestrians.
+r = 0.5
 # Set up minimum distance between pedestrians
-j = 0.5
+j = 1
+# Set up maximum attraction distance between pedestrian and exits
+s = 100
 
 # Set up initial positions and velocities of pedestrians
 pedestrians = []
 for i in range(n_pedestrians):
     p = np.random.uniform(boundary_min, boundary_max, size=2)
     v = np.zeros(2)
-    pedestrians.append(Pedestrian(p, m, t, A, B, j, r, k, K, v_desired, boundary_min, boundary_max))
+    pedestrians.append(Pedestrian(p, m, t, A, B, j, s, r, k, K, v0, boundary_min, boundary_max))
 
 # Set up walls
-walls = [] # Rectangulos interiores
-vertices = np.array([[0, 0], [10, 0], [10, 10], [0, 10]]) # Vertices del rectangulo
-walls.append(Wall(vertices))
+walls = []  # Rectangulos interiores
+
+start = np.array([0, 0])
+end = np.array([100, 0])
+walls.append(Wall(start, end))
+
+start = np.array([100, 0])
+end = np.array([100, 100])
+walls.append(Wall(start, end))
+
+start = np.array([100, 100])
+end = np.array([0, 100])
+walls.append(Wall(start, end))
+
+start = np.array([0, 100])
+end = np.array([0, 0])
+walls.append(Wall(start, end))
 
 # Set up exits
 exits = []
-vertices = np.array([[5.5, 0], [10, 0], [10, 0.5]])
-exits.append(Exit(vertices))
+
+start = np.array([10, 10])
+end = np.array([20, 10])
+exits.append(Exit(start, end))
 
 # Set up figure and axes
 fig, ax = plt.subplots()
@@ -262,19 +250,17 @@ for pedestrian in pedestrians:
     scatters.append(ax.scatter([pedestrian.p[0]], [pedestrian.p[1]], color='k'))
 
 # Set up plots for walls and exits
-lines_walls = []
 for wall in walls:
-    lines_walls.append(ax.plot(wall.vertices[:, 0], wall.vertices[:, 1], color='k'))
-lines_exits = []
+    wall.draw()
 for exit in exits:
-    lines_exits.append(ax.plot(exit.vertices[:, 0], exit.vertices[:, 1], color='r'))
+    exit.draw()
 
 
 # Set up animation function
 def animate(i):
     # Update positions and velocities of pedestrians
     for pedestrian in pedestrians:
-        pedestrian.update_velocity(dt, pedestrians, walls, exits)
+        pedestrian.update_velocity(dt, exit.end - pedestrian.p, pedestrians, walls)
         pedestrian.update_position()
     # Update scatter plots for pedestrians
     for i, pedestrian in enumerate(pedestrians):
@@ -286,6 +272,3 @@ anim = animation.FuncAnimation(fig, animate, frames=range(n_steps), interval=200
 
 # Show plot
 plt.show()
-
-# anim.save('animation.mp4')
-# anim.show()
