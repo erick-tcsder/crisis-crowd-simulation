@@ -1,45 +1,129 @@
 import { useCallback } from "react"
+import { Button } from "./Button"
+import classNames from "classnames"
+import {useNavigate} from 'react-router-dom'
+import { SimulationService } from "../hooks/simulationservice"
 
-export const ToolsSection = ({setCreating,creating,...props}) => {
+export const ToolsSection = ({setCreating,creating, map, setMap,...props}) => {
+  const navigator = useNavigate()
   const handleCreateObj = useCallback((obj)=>{
     setCreating(obj)
   },[setCreating])
   return (
-    <div className="flex flex-col">
-      <div>Input MAP NAME</div>
-
-      <span>Walls</span>
-      <div className="flex flex-row justify-start gap-3">
-        <button onClick={()=>handleCreateObj('VWALL')}>VWALL </button>
-        <button onClick={()=>handleCreateObj('HWALL')}>HWALL</button>
+    <div className="flex flex-col h-full pb-5 select-none">
+      <div className="">
+        <input value={map?.name} onChange={(e)=>setMap(map => ({
+          ...map,
+          name: e.target.value,
+        }))} placeholder={'Map Name'} required type='text' className="form-input text-white px-3 py-2 bg-[#232639] rounded-md w-full"/>
       </div>
 
-      <span>Obstacles</span>
+      <span className="mt-5 mb-1 uppercase text-xs opacity-50">Walls</span>
       <div className="flex flex-row justify-start gap-3">
-        <button onClick={()=>handleCreateObj('RECT')}>RECT </button>
-        <button onClick={()=>handleCreateObj('CIRC')}>CIRC</button>
+        <Button onClick={()=>handleCreateObj('VWALL')} icon={'bi bi-arrow-up'} className={classNames({
+          'rounded-md px-3 py-2':true,
+          'bg-sky-500 text-white':creating==='VWALL',
+          'ring-2 ring-sky-500 text-sky-500 hover:bg-sky-400 hover:bg-opacity-30 ring-inset': creating !== 'VWALL'
+        })}>V. Wall</Button>
+        <Button onClick={()=>handleCreateObj('HWALL')} icon={'bi bi-arrow-right'} className={classNames({
+          'rounded-md px-3 py-2':true,
+          'bg-sky-500 text-white':creating==='HWALL',
+          'ring-2 ring-sky-500 text-sky-500 hover:bg-sky-400 hover:bg-opacity-30 ring-inset': creating !== 'HWALL'
+        })}>H. Wall</Button>
       </div>
 
-      <span>Signs</span>
+      <span className="mt-5 mb-1 uppercase text-xs opacity-50">Obstacles</span>
       <div className="flex flex-row justify-start gap-3">
-        <button onClick={()=>handleCreateObj('UP')}>UP </button>
-        <button onClick={()=>handleCreateObj('RIGHT')}>RIGHT</button>
-        <button onClick={()=>handleCreateObj('DOWN')}>DOWN </button>
-        <button onClick={()=>handleCreateObj('LEFT')}>LEFT</button>
+      <Button onClick={()=>handleCreateObj('RECT')} icon={classNames({'bi bi-square':creating!== 'RECT','bi bi-square-fill': creating === 'RECT'})} className={classNames({
+          'rounded-md px-3 py-2':true,
+          'bg-sky-500 text-white':creating==='RECT',
+          'ring-2 ring-sky-500 text-sky-500 hover:bg-sky-400 hover:bg-opacity-30 ring-inset': creating !== 'RECT'
+        })}>Rect</Button>
+        <Button onClick={()=>handleCreateObj('CIRC')} icon={classNames({'bi bi-circle':creating!== 'CIRC','bi bi-circle-fill': creating === 'CIRC'})} className={classNames({
+          'rounded-md px-3 py-2':true,
+          'bg-sky-500 text-white':creating==='CIRC',
+          'ring-2 ring-sky-500 text-sky-500 hover:bg-sky-400 hover:bg-opacity-30 ring-inset': creating !== 'CIRC'
+        })}>Circle</Button>
       </div>
 
-      <span>Miscellaneous</span>
+      <span className="mt-5 mb-1 uppercase text-xs opacity-50">Signs</span>
       <div className="flex flex-row justify-start gap-3">
-        <button onClick={()=>handleCreateObj('DOOR')}>DOOR</button>
-        <button onClick={()=>handleCreateObj('SAFE')}>SAFE</button>
-        <button onClick={()=>handleCreateObj('EXIT')}>EXIT</button>
-        <button onClick={()=>handleCreateObj('STAIRS')}>STAIRS</button>
-        <button onClick={()=>handleCreateObj('ELEVATOR')}>ELEVATOR </button>
+        <Button onClick={()=>handleCreateObj('UP')} icon={'bi bi-arrow-up'} className={classNames({
+            'rounded-md px-3 py-2':true,
+            'bg-sky-500 text-white':creating==='UP',
+            'ring-2 ring-sky-500 text-sky-500 hover:bg-sky-400 hover:bg-opacity-30 ring-inset': creating !== 'UP'
+          })}/>
+        <Button onClick={()=>handleCreateObj('RIGHT')} icon={'bi bi-arrow-right'} className={classNames({
+            'rounded-md px-3 py-2':true,
+            'bg-sky-500 text-white':creating==='RIGHT',
+            'ring-2 ring-sky-500 text-sky-500 hover:bg-sky-400 hover:bg-opacity-30 ring-inset': creating !== 'RIGHT'
+          })}/>
+        <Button onClick={()=>handleCreateObj('DOWN')} icon={'bi bi-arrow-down'} className={classNames({
+            'rounded-md px-3 py-2':true,
+            'bg-sky-500 text-white':creating==='DOWN',
+            'ring-2 ring-sky-500 text-sky-500 hover:bg-sky-400 hover:bg-opacity-30 ring-inset': creating !== 'DOWN'
+          })}/>
+        <Button onClick={()=>handleCreateObj('LEFT')} icon={'bi bi-arrow-left'} className={classNames({
+            'rounded-md px-3 py-2':true,
+            'bg-sky-500 text-white':creating==='LEFT',
+            'ring-2 ring-sky-500 text-sky-500 hover:bg-sky-400 hover:bg-opacity-30 ring-inset': creating !== 'LEFT'
+          })}/>
       </div>
 
-      <div className="grid grid-cols-2">
-        <button className="">Cancel</button>
-        <button className="">Save</button>
+      <span className="mt-5 mb-1 uppercase text-xs opacity-50">Miscellaneous</span>
+      <div className="flex flex-row justify-start gap-3 flex-wrap">
+        <Button onClick={()=>handleCreateObj('DOOR')} icon={classNames({'bi bi-door-open':creating!== 'DOOR','bi bi-door-open-fill': creating === 'DOOR'})} className={classNames({
+            'rounded-md px-3 py-2':true,
+            'bg-sky-500 text-white':creating==='DOOR',
+            'ring-2 ring-sky-500 text-sky-500 hover:bg-sky-400 hover:bg-opacity-30 ring-inset': creating !== 'DOOR'
+          })}>Door</Button>
+        <Button onClick={()=>handleCreateObj('SAFE')} icon={classNames({'bi bi-heart':creating!== 'SAFE','bi bi-heart-fill': creating === 'SAFE'})} className={classNames({
+            'rounded-md px-3 py-2':true,
+            'bg-sky-500 text-white':creating==='SAFE',
+            'ring-2 ring-sky-500 text-sky-500 hover:bg-sky-400 hover:bg-opacity-30 ring-inset': creating !== 'SAFE'
+          })}>Safe Zone</Button>
+        <Button onClick={()=>handleCreateObj('EXIT')} icon={'bi bi-box-arrow-right'} className={classNames({
+          'rounded-md px-3 py-2':true,
+          'bg-sky-500 text-white':creating==='EXIT',
+          'ring-2 ring-sky-500 text-sky-500 hover:bg-sky-400 hover:bg-opacity-30 ring-inset': creating !== 'EXIT'
+        })}>Evacuation Exit</Button>
+        <Button onClick={()=>handleCreateObj('STAIRS')} icon={'bi bi-reception-4'} className={classNames({
+          'rounded-md px-3 py-2':true,
+          'bg-sky-500 text-white':creating==='STAIRS',
+          'ring-2 ring-sky-500 text-sky-500 hover:bg-sky-400 hover:bg-opacity-30 ring-inset': creating !== 'STAIRS'
+        })}>Stairs</Button>
+        <Button onClick={()=>handleCreateObj('ELEVATOR')} icon={'bi bi-arrow-down-up'} className={classNames({
+          'rounded-md px-3 py-2':true,
+          'bg-sky-500 text-white':creating==='ELEVATOR',
+          'ring-2 ring-sky-500 text-sky-500 hover:bg-sky-400 hover:bg-opacity-30 ring-inset': creating !== 'ELEVATOR'
+        })}>Elevator</Button>
+      </div>
+
+      <span className="mt-5 mb-1 uppercase text-xs opacity-50">Damage</span>
+      <div className="flex flex-row justify-start g ap-3">
+        <Button onClick={()=>handleCreateObj('DAMAGE_ZONE')} icon={'bi bi-fire'} className={classNames({
+          'rounded-md px-3 py-2':true,
+          'bg-red-500 text-white':creating==='DAMAGE_ZONE',
+          'ring-2 ring-red-500 text-red-500 hover:bg-red-400 hover:bg-opacity-30 ring-inset': creating !== 'DAMAGE_ZONE'
+        })}>Damage Zone</Button>
+      </div>
+
+      <div className="mt-auto flex px-3 justify-evenly">
+      <Button onClick={()=>navigator('/')} icon={'bi bi-x'} className={classNames({
+          'rounded-md px-3 py-2':true,
+          'ring-2 ring-sky-500 text-sky-500 hover:bg-sky-400 hover:bg-opacity-30 ring-inset': true
+        })}>Cancel</Button>
+      <Button onClick={async()=>{
+        try{
+          await SimulationService.addMap(map)
+        }catch(e){
+
+        }
+        navigator('/')
+      }} icon={'bi bi-save2'} className={classNames({
+          'rounded-md px-3 py-2':true,
+          'bg-sky-500 text-white hover:ring-sky-300 hover:ring-2 hover:ring-offset-2 hover:ring-offset-[#121425]':true,
+        })}>Save</Button>
       </div>
     </div>
   )

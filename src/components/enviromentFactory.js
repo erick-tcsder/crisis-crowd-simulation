@@ -57,7 +57,7 @@ export const envMapper = {
   STAIRS: (props)=>{
     return (
       <div
-        className="absolute bg-orange-400 bg-opacity-30 border-orange-500 border-2 grid place-content-center"
+        className="absolute bg-orange-400 bg-opacity-30 text-orange-700 border-orange-500 border-2 grid place-content-center"
         style={{
           top: Utils.getMToPx(props.map, props.canvas, props.top),
           left: Utils.getMToPx(props.map, props.canvas, props.left),
@@ -70,7 +70,7 @@ export const envMapper = {
   DOOR:(props)=>{
     return (
       <div
-        className="absolute bg-purple-600 bg-opacity-30 border-purple-700 border-1 grid place-content-center"
+        className="absolute bg-purple-600 bg-opacity-30 border-purple-700 border-2 grid place-content-center"
         style={{
           top: Utils.getMToPx(props.map, props.canvas, props.top),
           left: Utils.getMToPx(props.map, props.canvas, props.left),
@@ -83,7 +83,7 @@ export const envMapper = {
   ELEVATOR: (props)=>{
     return (
       <div
-        className="absolute bg-indigo-400 bg-opacity-30 border-indigo-500 border-2 grid place-content-center"
+        className="absolute bg-indigo-400 bg-opacity-30 text-indigo-800 border-indigo-500 border-2 grid place-content-center"
         style={{
           top: Utils.getMToPx(props.map, props.canvas, props.top),
           left: Utils.getMToPx(props.map, props.canvas, props.left),
@@ -94,7 +94,6 @@ export const envMapper = {
     )
   },
   SAFE_ZONE: (props)=>{
-    console.log(props)
     return (
       <div
         className="absolute bg-lime-400 bg-opacity-30 border-lime-500 border-2 grid place-content-center"
@@ -136,7 +135,7 @@ export const envMapper = {
   EVAC_SIGN: (props)=>{
     return (
       <div
-        className="absolute bg-yellow-500 bg-opacity-30 border-yellow-500 border-2 grid place-content-center"
+        className="absolute bg-yellow-500 bg-opacity-30 text-yellow-800 border-yellow-500 border-2 grid place-content-center"
         style={{
           top: Utils.getMToPx(props.map, props.canvas, props.top),
           left: Utils.getMToPx(props.map, props.canvas, props.left),
