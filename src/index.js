@@ -6,6 +6,7 @@ import reportWebVitals from './reportWebVitals';
 import {createBrowserRouter,RouterProvider} from 'react-router-dom'
 import { MapPage } from './pages/mapPage';
 import { SetupPage } from './pages/setupPage';
+import { PageTitle } from './components/pageTitle';
 
 
 const router = createBrowserRouter([
@@ -19,11 +20,7 @@ const router = createBrowserRouter([
       },
       {
         path: '/simulation',
-        element: <div>simulation</div>
-      },
-      {
-        path: '/simulation/start',
-        element: <div>start simulation</div>
+        element: <PageTitle title={'Simulation'}/>
       },
       {
         index: true,

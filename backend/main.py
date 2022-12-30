@@ -29,8 +29,8 @@ def main():
 
 @app.post('/simulation/restart')
 def restartSimulation():
-  simulationBuilding = []
-  return 'OK',200
+  simulationBuilding.clear()
+  return 'OK'
 
 @app.get('/map')
 def getMap():
@@ -40,15 +40,17 @@ def getMap():
 def getMapByName(name:str):
   for i in simulationBuilding:
     if i.name == name:
-      return i.toJson(),200
+      return i.toJson()
   return 'Not Found',404
 
 @app.post('/map')
 def addMap(map:JsonBluePrint):
   if simulationStatus == "RUNNING" :
     return 'Simulation is running',400
+  if map.name in [i.name for i in simulationBuilding]:
+    simulationBuilding.remove([i for i in simulationBuilding if i.name == map.name][0])
   simulationBuilding.append(Blueprint.fromJson(map))
-  return 'OK',200
+  return 'OK'
   
 @app.delete('/map/{name}')
 def deleteMapByName(name:str):
@@ -57,7 +59,7 @@ def deleteMapByName(name:str):
   for i in simulationBuilding:
     if i.name == name:
       simulationBuilding.remove(i)
-      return 'OK',200
+      return 'OK'
   return 'Not Found',404
 
 @app.get('/simulation/status')
@@ -67,14 +69,14 @@ def getSimulationStatus():
   }
   if simulationStatus == 'RUNNING' :
     status.conection = '8080'
-  return status,200
+  return status
 
 @app.post('/simulation/start')
 def simulationStart():
   simulationStatus = 'RUNNING'
-  return 'OK',200
+  return 'OK'
 
 @app.post('/simulation/stop')
 def simulationStop():
   simulationStatus = 'STOPPED'
-  return 'OK',200
+  return 'OK'

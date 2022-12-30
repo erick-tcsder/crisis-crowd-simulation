@@ -6,6 +6,7 @@ import Swal from "sweetalert2";
 
 export const getNewObstacle = async (coords,creating,map,canvas) => {
   const {start,end} = coords
+  console.log('new',map,canvas,creating,coords)
   const x = Utils.getPxToM(map,canvas,Math.min(start.x,end.x))
   const y = Utils.getPxToM(map,canvas,Math.min(start.y,end.y)) 
   const w = Utils.getPxToM(map,canvas,start.x < end.x ? end.x - start.x : start.x - end.x)
@@ -145,21 +146,16 @@ export const MapCanvas = ({ map, handleChangeMap, creating, handleUncreate, ...p
   const creatingCanvas = useRef(null);
   const [dims,setDims] = useState(null)
   const crtng = useRef(false)
-  const crshape = useRef(null)
   const coordsRef = useRef({})
   const aspectRatio = useMemo(() => {
     return map.width / map.height;
   }, [map]);
 
   useEffect(()=>{
-    crshape.current = creating
-  },[creating])
-
-  useEffect(()=>{
     const canv = creatingCanvas.current
     if(canv && creatingShape.current){
       canv.className = 'absolute inset-0 bg-transparent z-[99]'
-      creatingShape.current.className = 'hidden z-[98]'
+      creatingShape.current.className = 'z-[98]'
     }
     const el1 = (e)=>{
       const bb = canv.getBoundingClientRect()
@@ -178,6 +174,7 @@ export const MapCanvas = ({ map, handleChangeMap, creating, handleUncreate, ...p
         creatingShape.current.style.display = 'none'
       }
       if(coordsRef.current.start){
+        creatingShape.current.style.display = 'block'
         coordsRef.current = {
           ...coordsRef.current,
           end: {
@@ -190,20 +187,10 @@ export const MapCanvas = ({ map, handleChangeMap, creating, handleUncreate, ...p
         const y = Math.min(start.y,end.y)
         const w = start.x < end.x ? end.x - start.x : start.x - end.x
         const h = start.y < end.y ? end.y - start.y : start.y - end.y
-        const min = Math.min(w,h)
-        if([].includes(crshape.current)){
-          creatingShape.current.style.width = `${min}px`
-          creatingShape.current.style.height = `${min}px`
-        }else if ([].includes(crshape.current)){
-          creatingShape.current.style.width = `${w}px`
-          creatingShape.current.style.height = `${h}px`
-        }else{
-          creatingShape.current.style.width = `${w}px`
-          creatingShape.current.style.height = `${h}px`
-        }
+        creatingShape.current.style.width = `${w}px`
+        creatingShape.current.style.height = `${h}px`
         creatingShape.current.style.left = `${x}px`
         creatingShape.current.style.top = `${y}px`
-        creatingShape.current.style.display = 'block'
       }
     }
     canv.addEventListener('mousemove', el2)
@@ -223,7 +210,7 @@ export const MapCanvas = ({ map, handleChangeMap, creating, handleUncreate, ...p
         crtng.current = false;
         return
       }
-      const newNode = await getNewObstacle(coordsRef.current,crshape.current,map,{width: bb.width, height: bb.height})
+      const newNode = await getNewObstacle(coordsRef.current,creating,map,{width: bb.width, height: bb.height})
       if(newNode){
         handleChangeMap((map)=>({
           ...map,
@@ -234,6 +221,7 @@ export const MapCanvas = ({ map, handleChangeMap, creating, handleUncreate, ...p
       crtng.current = false
     }
     window.addEventListener('mouseup', el3)
+
     const el4 = (e)=>{
       if(e.key === 'z' && e.ctrlKey){
         handleChangeMap((map)=>({
@@ -249,7 +237,7 @@ export const MapCanvas = ({ map, handleChangeMap, creating, handleUncreate, ...p
       window.removeEventListener('mouseup', el3)
       window.removeEventListener('keydown', el4)
     }
-  },[])
+  },[creating, handleChangeMap, map])
 
   useEffect(() => {
     if (creating) {
@@ -259,7 +247,7 @@ export const MapCanvas = ({ map, handleChangeMap, creating, handleUncreate, ...p
       creatingCanvas.current.className = 'hidden'
       creatingShape.current.className = 'hidden'
     }
-  },[creating])
+  },[creating,map])
 
   useEffect(()=>{
     const {height: h, width: w} = props.containerRef?.current?.getBoundingClientRect()
