@@ -18,31 +18,17 @@ export const ToolsSection = ({setCreating,creating, map, setMap,...props}) => {
         }))} placeholder={'Map Name'} required type='text' className="form-input text-white px-3 py-2 bg-[#232639] rounded-md w-full"/>
       </div>
 
-      <span className="mt-5 mb-1 uppercase text-xs opacity-50">Walls</span>
-      <div className="flex flex-row justify-start gap-3">
-        <Button onClick={()=>handleCreateObj('VWALL')} icon={'bi bi-arrow-up'} className={classNames({
-          'rounded-md px-3 py-2':true,
-          'bg-sky-500 text-white':creating==='VWALL',
-          'ring-2 ring-sky-500 text-sky-500 hover:bg-sky-400 hover:bg-opacity-30 ring-inset': creating !== 'VWALL'
-        })}>V. Wall</Button>
-        <Button onClick={()=>handleCreateObj('HWALL')} icon={'bi bi-arrow-right'} className={classNames({
-          'rounded-md px-3 py-2':true,
-          'bg-sky-500 text-white':creating==='HWALL',
-          'ring-2 ring-sky-500 text-sky-500 hover:bg-sky-400 hover:bg-opacity-30 ring-inset': creating !== 'HWALL'
-        })}>H. Wall</Button>
-      </div>
-
       <span className="mt-5 mb-1 uppercase text-xs opacity-50">Obstacles</span>
       <div className="flex flex-row justify-start gap-3">
-      <Button onClick={()=>handleCreateObj('RECT')} icon={classNames({'bi bi-square':creating!== 'RECT','bi bi-square-fill': creating === 'RECT'})} className={classNames({
+      <Button onClick={()=>handleCreateObj('RECTANGULAR_OBSTACLE')} icon={classNames({'bi bi-square':creating!== 'RECTANGULAR_OBSTACLE','bi bi-square-fill': creating === 'RECTANGULAR_OBSTACLE'})} className={classNames({
           'rounded-md px-3 py-2':true,
-          'bg-sky-500 text-white':creating==='RECT',
-          'ring-2 ring-sky-500 text-sky-500 hover:bg-sky-400 hover:bg-opacity-30 ring-inset': creating !== 'RECT'
+          'bg-sky-500 text-white':creating==='RECTANGULAR_OBSTACLE',
+          'ring-2 ring-sky-500 text-sky-500 hover:bg-sky-400 hover:bg-opacity-30 ring-inset': creating !== 'RECTANGULAR_OBSTACLE'
         })}>Rect</Button>
-        <Button onClick={()=>handleCreateObj('CIRC')} icon={classNames({'bi bi-circle':creating!== 'CIRC','bi bi-circle-fill': creating === 'CIRC'})} className={classNames({
+        <Button onClick={()=>handleCreateObj('CIRCLE_OBSTACLE')} icon={classNames({'bi bi-circle':creating!== 'CIRCLE_OBSTACLE','bi bi-circle-fill': creating === 'CIRCLE_OBSTACLE'})} className={classNames({
           'rounded-md px-3 py-2':true,
-          'bg-sky-500 text-white':creating==='CIRC',
-          'ring-2 ring-sky-500 text-sky-500 hover:bg-sky-400 hover:bg-opacity-30 ring-inset': creating !== 'CIRC'
+          'bg-sky-500 text-white':creating==='CIRCLE_OBSTACLE',
+          'ring-2 ring-sky-500 text-sky-500 hover:bg-sky-400 hover:bg-opacity-30 ring-inset': creating !== 'CIRCLE_OBSTACLE'
         })}>Circle</Button>
       </div>
 
@@ -77,10 +63,10 @@ export const ToolsSection = ({setCreating,creating, map, setMap,...props}) => {
             'bg-sky-500 text-white':creating==='DOOR',
             'ring-2 ring-sky-500 text-sky-500 hover:bg-sky-400 hover:bg-opacity-30 ring-inset': creating !== 'DOOR'
           })}>Door</Button>
-        <Button onClick={()=>handleCreateObj('SAFE')} icon={classNames({'bi bi-heart':creating!== 'SAFE','bi bi-heart-fill': creating === 'SAFE'})} className={classNames({
+        <Button onClick={()=>handleCreateObj('SAFE_ZONE')} icon={classNames({'bi bi-heart':creating!== 'SAFE_ZONE','bi bi-heart-fill': creating === 'SAFE_ZONE'})} className={classNames({
             'rounded-md px-3 py-2':true,
-            'bg-sky-500 text-white':creating==='SAFE',
-            'ring-2 ring-sky-500 text-sky-500 hover:bg-sky-400 hover:bg-opacity-30 ring-inset': creating !== 'SAFE'
+            'bg-sky-500 text-white':creating==='SAFE_ZONE',
+            'ring-2 ring-sky-500 text-sky-500 hover:bg-sky-400 hover:bg-opacity-30 ring-inset': creating !== 'SAFE_ZONE'
           })}>Safe Zone</Button>
         <Button onClick={()=>handleCreateObj('EXIT')} icon={'bi bi-box-arrow-right'} className={classNames({
           'rounded-md px-3 py-2':true,

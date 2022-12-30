@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { EnviromentFactory, envMapper } from "./enviromentFactory";
 import { Utils } from "../utils";
-import Swal from "sweetalert2";
+import Swal from "sweetalert2"; 
+
 
 export const getNewObstacle = async (coords,creating,map,canvas) => {
   const {start,end} = coords
@@ -11,27 +12,9 @@ export const getNewObstacle = async (coords,creating,map,canvas) => {
   const h = Utils.getPxToM(map,canvas,start.y < end.y ? end.y - start.y : start.y - end.y)
   const min = Math.min(w,h)
   switch (creating) {
-    case 'VWALL':
+    case 'RECTANGULAR_OBSTACLE':
       return {
-        OBJECT_TYPE: 'V_WALL',
-        props:{
-          top: y,
-          left: x, 
-          height: h
-        }
-      }
-    case 'HWALL':
-      return {
-        OBJECT_TYPE: 'H_WALL',
-        props:{
-          top: y,
-          left: x, 
-          width: w
-        }
-      }
-    case 'RECT':
-      return {
-        OBJECT_TYPE: 'RECTANGULAR_OBJ',
+        OBJECT_TYPE: 'RECTANGULAR_OBSTACLE',
         props:{
           top: y,
           left: x, 
@@ -39,9 +22,9 @@ export const getNewObstacle = async (coords,creating,map,canvas) => {
           height: h
         }
       }
-    case 'CIRC':
+    case 'CIRCLE_OBSTACLE':
       return {
-        OBJECT_TYPE: 'CIRCULAR_OBJ',
+        OBJECT_TYPE: 'CIRCLE_OBSTACLE',
         props:{
           top: y,
           left: x, 
@@ -84,7 +67,7 @@ export const getNewObstacle = async (coords,creating,map,canvas) => {
           height: h
         }
       }
-    case 'SAFE':
+    case 'SAFE_ZONE':
       return {
         OBJECT_TYPE: 'SAFE_ZONE',
         props:{

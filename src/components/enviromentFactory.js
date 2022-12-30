@@ -1,32 +1,6 @@
 import { Utils } from "../utils";
 
 export const envMapper = {
-  V_WALL: (props) => {
-    return (
-      <div
-        className="absolute bg-gray-800"
-        style={{
-          top: Utils.getMToPx(props.map, props.canvas, props.top),
-          left: Utils.getMToPx(props.map, props.canvas, props.left),
-          width: Utils.getMToPx(props.map, props.canvas, 0.2),
-          height: Utils.getMToPx(props.map, props.canvas, props.height),
-        }}
-      ></div>
-    );
-  },
-  H_WALL: (props) => {
-    return (
-      <div
-        className="absolute bg-gray-800"
-        style={{
-          top: Utils.getMToPx(props.map, props.canvas, props.top),
-          left: Utils.getMToPx(props.map, props.canvas, props.left),
-          width: Utils.getMToPx(props.map, props.canvas, props.width),
-          height: Utils.getMToPx(props.map, props.canvas, 0.2),
-        }}
-      ></div>
-    );
-  },
   RECTANGULAR_OBJ: (props)=>{
     return (
       <div
