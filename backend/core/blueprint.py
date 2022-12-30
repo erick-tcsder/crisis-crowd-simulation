@@ -1,7 +1,9 @@
 from enum import Enum
+from typing import List
+from .enviroment_objects import EnvObj
+from .enviroment_objects import *
 
 class ObjectCategory(Enum):
-  Wall = 'WALL'
   RectObstacle = 'RECTANGULAR_OBSTACLE'
   CircObstacle = 'CIRCLE_OBSTACLE'
   Door = 'DOOR'
@@ -13,24 +15,47 @@ class ObjectCategory(Enum):
   DamageZone = 'DAMAGE_ZONE'  
   
 def toObj(json):
-  match json.type:
-    case ObjectCategory.Wall:
-      pass
-    case ObjectCategory.RectObstacle:
-      pass
+  match json["OBJECT_TYPE"]:
+    case ObjectCategory.RectObstacle.value:
+      return RectObs.fromJson(json)
+    case ObjectCategory.CircObstacle.value:
+      return CircleObs.fromJson(json)
+    case ObjectCategory.Door.value:
+      return Door.fromJson(json)
+    case ObjectCategory.Stairs.value:
+      return Stairs.fromJson(json)
+    case ObjectCategory.Elevator.value:
+      return Elevator.fromJson(json)
+    case ObjectCategory.SafeZone.value:
+      return SafeZone.fromJson(json)
+    case ObjectCategory.EvacExit.value:
+      return EvacExit.fromJson(json)
+    case ObjectCategory.EvacSign.value:
+      return EvacSign.fromJson(json)
+    case ObjectCategory.DamageZone.value:
+      return DamageZone.fromJson(json)
   
 class Blueprint:
   width: int
   height: int
-  def __init__(self,w:int,h:int) -> None:
+  name: str
+  objects: List[EnvObj]
+  def __init__(self,w:int,h:int,name:str) -> None:
     self.height = h
     self.width = w
-  
-class FloorBlueprint(Blueprint):
-  objects = []
-  def __init__(self, w: int, h: int) -> None:
-    super().__init__(w, h)
+    self.name = name
+    self.objects = []
     
-  def readObjects(json):
-    # TODO: read objects from json
-    pass
+  @staticmethod
+  def fromJson(json):
+    blueprint = Blueprint(json.width,json.height,json.name)
+    blueprint.objects = [toObj(obj) for obj in json.items]
+    return blueprint
+  
+  def toJson(self):
+    return {
+      'width':self.width,
+      'height':self.height,
+      'name':self.name,
+      'items':[obj.toJson() for obj in self.objects]
+    }
