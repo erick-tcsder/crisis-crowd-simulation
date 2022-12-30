@@ -9,12 +9,9 @@ class EnvObj:
   def getRoundingBox(self)->List[Tuple[float,float]]:
     raise NotImplementedError()
   
-  @abstractmethod
   def toJson(self)->dict:
     raise NotImplementedError()
   
-  @abstractmethod
-  @staticmethod
   def fromJson(json:dict):
     raise NotImplementedError()
   
@@ -32,7 +29,7 @@ class RectShaped(EnvObj):
 class CircleShaped(EnvObj):
   def __init__(self, coords: List[Tuple[float,float]]):
     self.coords = coords
-    self.center = ((coords[0][0]+coords[2][0])/2,(coords[0][1]+coords[2][1])/2)
+    self.center = ((coords[0][0]+coords[1][0])/2,(coords[0][1]+coords[1][1])/2)
     self.radius = abs(coords[1][0] - coords[0][0])/2
     
   def getRoundingBox(self) -> List[Tuple[float, float]]:
@@ -45,7 +42,7 @@ class CircleShaped(EnvObj):
 
 class RectObs(RectShaped):
   def __init__(self, coords: List[Tuple[float,float]]):
-    super.__init__(self,coords)
+    super().__init__(coords)
     self.isObstacle = True
     
   def toJson(self):
@@ -64,12 +61,12 @@ class RectObs(RectShaped):
 
 class CircleObs(CircleShaped):
   def __init__(self,coords:List[Tuple[float,float]]):
-    super.__init__(coords)
+    super().__init__(coords)
     self.isObstacle = True
     
   def toJson(self):
     return {
-      'OBJECT_TYPE':'CIRCULAR_OBSTACLE',
+      'OBJECT_TYPE':'CIRCLE_OBSTACLE',
       'props': {
         'top': self.coords[0][1],
         'left': self.coords[0][0],
@@ -83,7 +80,7 @@ class CircleObs(CircleShaped):
   
 class Door(RectShaped):
   def __init__(self, coords: List[Tuple[float,float]]):
-    super.__init__(self,coords)
+    super().__init__(coords)
     self.isObstacle = False
     
   def toJson(self):
@@ -102,7 +99,7 @@ class Door(RectShaped):
     
 class Stairs(RectShaped):
   def __init__(self, coords: List[Tuple[float,float]], warpID:str):
-    super.__init__(self,coords)
+    super().__init__(coords)
     self.isObstacle = False
     self.warpID = warpID
     
@@ -123,13 +120,13 @@ class Stairs(RectShaped):
   
 class Elevator(RectShaped):
   def __init__(self, coords: List[Tuple[float,float]], warpID:str):
-    super.__init__(self,coords)
+    super().__init__(coords)
     self.isObstacle = False
     self.warpID = warpID
     
   def toJson(self):
     return {
-      'OBJECT_TYPE':'STAIRS',
+      'OBJECT_TYPE':'ELEVATOR',
       'props': {
         'top':self.coords[0][1],
         'left':self.coords[0][0],
@@ -144,7 +141,7 @@ class Elevator(RectShaped):
     
 class SafeZone(RectShaped):
   def __init__(self, coords: List[Tuple[float,float]]):
-    super.__init__(self,coords)
+    super().__init__(coords)
     self.isObstacle = False
     self.isSafeZone = True
     
@@ -163,7 +160,7 @@ class SafeZone(RectShaped):
     
 class EvacExit(RectShaped):
   def __init__(self, coords: List[Tuple[float,float]]):
-    super.__init__(self,coords)
+    super().__init__(coords)
     self.isObstacle = False
     self.isSafeZone = True
     
@@ -182,7 +179,7 @@ class EvacExit(RectShaped):
     
 class EvacSign(RectShaped):
   def __init__(self, coords: List[Tuple[float,float]], angleDeg:float):
-    super.__init__(self,coords)
+    super().__init__(coords)
     self.isObstacle = False
     self.angleDeg = angleDeg
   def toJson(self):
@@ -203,7 +200,7 @@ class EvacSign(RectShaped):
     
 class DamageZone(RectShaped):
   def __init__(self, coords: List[Tuple[float,float]], damageFactor:float):
-    super.__init__(self,coords)
+    super().__init__(coords)
     self.isObstacle = False
     self.damageFactor = damageFactor
     

@@ -68,10 +68,10 @@ export const ToolsSection = ({setCreating,creating, map, setMap,...props}) => {
             'bg-sky-500 text-white':creating==='SAFE_ZONE',
             'ring-2 ring-sky-500 text-sky-500 hover:bg-sky-400 hover:bg-opacity-30 ring-inset': creating !== 'SAFE_ZONE'
           })}>Safe Zone</Button>
-        <Button onClick={()=>handleCreateObj('EXIT')} icon={'bi bi-box-arrow-right'} className={classNames({
+        <Button onClick={()=>handleCreateObj('EVAC_EXIT')} icon={'bi bi-box-arrow-right'} className={classNames({
           'rounded-md px-3 py-2':true,
-          'bg-sky-500 text-white':creating==='EXIT',
-          'ring-2 ring-sky-500 text-sky-500 hover:bg-sky-400 hover:bg-opacity-30 ring-inset': creating !== 'EXIT'
+          'bg-sky-500 text-white':creating==='EVAC_EXIT',
+          'ring-2 ring-sky-500 text-sky-500 hover:bg-sky-400 hover:bg-opacity-30 ring-inset': creating !== 'EVAC_EXIT'
         })}>Evacuation Exit</Button>
         <Button onClick={()=>handleCreateObj('STAIRS')} icon={'bi bi-reception-4'} className={classNames({
           'rounded-md px-3 py-2':true,
@@ -102,10 +102,10 @@ export const ToolsSection = ({setCreating,creating, map, setMap,...props}) => {
       <Button onClick={async()=>{
         try{
           await SimulationService.addMap(map)
+          navigator('/')
         }catch(e){
-
+          console.error(e)
         }
-        navigator('/')
       }} icon={'bi bi-save2'} className={classNames({
           'rounded-md px-3 py-2':true,
           'bg-sky-500 text-white hover:ring-sky-300 hover:ring-2 hover:ring-offset-2 hover:ring-offset-[#121425]':true,

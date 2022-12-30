@@ -16,24 +16,24 @@ class ObjectCategory(Enum):
   
 def toObj(json):
   match json["OBJECT_TYPE"]:
-    case ObjectCategory.RectObstacle:
-      RectObs.fromJson(json)
-    case ObjectCategory.CircObstacle:
-      CircleObs.fromJson(json)
-    case ObjectCategory.Door:
-      Door.fromJson(json)
-    case ObjectCategory.Stairs:
-      Stairs.fromJson(json)
-    case ObjectCategory.Elevator:
-      Elevator.fromJson(json)
-    case ObjectCategory.SafeZone:
-      SafeZone.fromJson(json)
-    case ObjectCategory.EvacExit:
-      EvacExit.fromJson(json)
-    case ObjectCategory.EvacSign:
-      EvacSign.fromJson(json)
-    case ObjectCategory.DamageZone:
-      DamageZone.fromJson(json)
+    case ObjectCategory.RectObstacle.value:
+      return RectObs.fromJson(json)
+    case ObjectCategory.CircObstacle.value:
+      return CircleObs.fromJson(json)
+    case ObjectCategory.Door.value:
+      return Door.fromJson(json)
+    case ObjectCategory.Stairs.value:
+      return Stairs.fromJson(json)
+    case ObjectCategory.Elevator.value:
+      return Elevator.fromJson(json)
+    case ObjectCategory.SafeZone.value:
+      return SafeZone.fromJson(json)
+    case ObjectCategory.EvacExit.value:
+      return EvacExit.fromJson(json)
+    case ObjectCategory.EvacSign.value:
+      return EvacSign.fromJson(json)
+    case ObjectCategory.DamageZone.value:
+      return DamageZone.fromJson(json)
   
 class Blueprint:
   width: int
@@ -49,7 +49,7 @@ class Blueprint:
   @staticmethod
   def fromJson(json):
     blueprint = Blueprint(json.width,json.height,json.name)
-    blueprint = [toObj(obj) for obj in json.items]
+    blueprint.objects = [toObj(obj) for obj in json.items]
     return blueprint
   
   def toJson(self):

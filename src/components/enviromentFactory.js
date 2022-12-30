@@ -1,7 +1,7 @@
 import { Utils } from "../utils";
 
 export const envMapper = {
-  RECTANGULAR_OBJ: (props)=>{
+  RECTANGULAR_OBSTACLE: (props)=>{
     return (
       <div
         className="absolute bg-gray-800 bg-opacity-30 border-gray-900 border"
@@ -14,7 +14,7 @@ export const envMapper = {
       ></div>
     )
   },
-  CIRCULAR_OBJ: (props)=>{
+  CIRCLE_OBSTACLE: (props)=>{
     return (
       <div
         className="absolute bg-gray-800 bg-opacity-30 border-gray-900 border aspect-square"
@@ -131,5 +131,6 @@ export const EnviromentFactory = ({
 }) => {
   if(!canvas) return <></>
   const Component = enviromentMapper[envOjb?.["OBJECT_TYPE"]];
+  if(!Component){console.error('error not found'); return <></>}
   return <Component {...envOjb.props} canvas={canvas} map={map} />;
 };

@@ -57,7 +57,7 @@ export const getNewObstacle = async (coords,creating,map,canvas) => {
           height: h
         }
       }
-    case 'EXIT':
+    case 'EVAC_EXIT':
       return {
         OBJECT_TYPE: 'EVAC_EXIT',
         props:{

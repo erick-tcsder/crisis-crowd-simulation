@@ -5,6 +5,7 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import {createBrowserRouter,RouterProvider} from 'react-router-dom'
 import { MapPage } from './pages/mapPage';
+import { SetupPage } from './pages/setupPage';
 
 
 const router = createBrowserRouter([
@@ -23,6 +24,10 @@ const router = createBrowserRouter([
       {
         path: '/simulation/start',
         element: <div>start simulation</div>
+      },
+      {
+        index: true,
+        element: <SetupPage/>
       }
     ],
     errorElement: <div>404</div>
