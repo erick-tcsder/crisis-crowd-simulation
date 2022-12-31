@@ -7,7 +7,7 @@ function App() {
   const navigator = useNavigate()
   return (
     <div className="fixed inset-0">
-      <header className="flex p-3 flex-row justify-between absolute inset-x-0 top-0 h-16 z-[999] shadow-2xl border-b-2 border-sky-400 border-opacity-20">
+      <header className="flex p-3 flex-row justify-between absolute inset-x-0 top-0 h-16 z-[990] shadow-2xl border-b-2 border-sky-400 border-opacity-20">
         <div id='page-title-portal'/>
         <div id='page-actions-portal'/>
         <div className="flex flex-row gap-x-4">
@@ -42,7 +42,7 @@ function App() {
         }catch(e){
           console.error(e)
         }
-      }} icon={'bi bi-play-fill'} className="bg-sky-400 text-white fixed z-[999] bottom-20 right-6 rounded-full aspect-square text-3xl hover:after:content-['Start'] hover:aspect-auto after:text-base"/>
+      }} icon={'bi bi-play-fill'} className="bg-sky-400 text-white fixed z-[990] bottom-20 right-6 rounded-full aspect-square text-3xl hover:after:content-['Start'] hover:aspect-auto after:text-base"/>
       <Outlet/>
     </div>
   );
