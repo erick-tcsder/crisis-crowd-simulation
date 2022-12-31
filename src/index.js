@@ -2,11 +2,10 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
-import reportWebVitals from './reportWebVitals';
-import {createBrowserRouter,RouterProvider} from 'react-router-dom'
+import {createBrowserRouter,RouterProvider, Link} from 'react-router-dom'
 import { MapPage } from './pages/mapPage';
 import { SetupPage } from './pages/setupPage';
-import { PageTitle } from './components/pageTitle';
+import { SimulationPage } from './pages/simulationPage';
 
 
 const router = createBrowserRouter([
@@ -20,14 +19,21 @@ const router = createBrowserRouter([
       },
       {
         path: '/simulation',
-        element: <PageTitle title={'Simulation'}/>
+        element: <SimulationPage/>
       },
       {
         index: true,
         element: <SetupPage/>
       }
     ],
-    errorElement: <div>404</div>
+    errorElement: <div className='fixed inset-5 flex'>
+      <div className='flex flex-col m-auto'>
+        <span className='text-8xl font-bold text-sky-400 '>404</span>
+        <span className='uppercase text-xs tracking-tight text-white text-opacity-60'>Opps ... this is not the page you are looking for (I supose)</span>
+        <Link className='' to={'/'}>Home</Link>
+      </div>
+      <div className='blur-3xl bg-sky-400 opacity-25 aspect-square w-80 rounded-full fixed left-1/2 top-1/2'/>
+    </div>
   }
 ])
 

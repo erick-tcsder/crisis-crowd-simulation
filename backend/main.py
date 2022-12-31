@@ -1,8 +1,11 @@
 from typing import List
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
+import json
 from core import Blueprint
 from pydantic import BaseModel
+import asyncio
 
 app = FastAPI(debug=True)
 
@@ -80,3 +83,16 @@ def simulationStart():
 def simulationStop():
   simulationStatus = 'STOPPED'
   return 'OK'
+
+async def stream_foo():
+  i = 0
+  while True:
+    if i == 10: break
+    yield f"data: {json.dumps({'foo': i})}\n\n"
+    i += 1
+    await asyncio.sleep(0.5)
+  yield f"data: {json.dumps('end')}\n\n"
+
+@app.get("/stream")
+async def stream():
+  return StreamingResponse(stream_foo(), media_type="text/event-stream")

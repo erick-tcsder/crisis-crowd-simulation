@@ -6,7 +6,6 @@ import Swal from "sweetalert2";
 
 export const getNewObstacle = async (coords,creating,map,canvas) => {
   const {start,end} = coords
-  console.log('new',map,canvas,creating,coords)
   const x = Utils.getPxToM(map,canvas,Math.min(start.x,end.x))
   const y = Utils.getPxToM(map,canvas,Math.min(start.y,end.y)) 
   const w = Utils.getPxToM(map,canvas,start.x < end.x ? end.x - start.x : start.x - end.x)

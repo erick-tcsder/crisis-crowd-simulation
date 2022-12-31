@@ -6,6 +6,7 @@ import classNames from "classnames"
 import Swal from "sweetalert2"
 import {useNavigate} from 'react-router-dom'
 import { PageTitle } from "../components/pageTitle"
+import DragAndDropOverlay from "../components/tst"
 
 
 const MapPrev = (props) => {
@@ -79,9 +80,10 @@ export const SetupPage = (props)=>{
       <div className='fixed inset-x-3 top-16 bottom-3 grid-cols-4 grid gap-9 overflow-auto p-5'>
         {maps.map(m=> <MapPrev m={m} key={m.name} getMaps={getMaps}/>)}
         <button onClick={handleAddMap}  className="col-span-1 p-3 group grid bg-[#232639] rounded-lg border-2 hover:border-solid hover:border-4 hover:border-opacity-100 border-sky-400 border-dashed border-opacity-50">
-          <span className="place-self-center group-hover:text-sky-400 text-lg">+ Add Map</span>
+          <span className="place-self-center group-hover:text-sky-400 text-lg">+ Add Map <br/> Or drag & drop it</span>
         </button>
       </div>
+      <DragAndDropOverlay/>
     </>
   )
 }
