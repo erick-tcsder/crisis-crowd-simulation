@@ -35,14 +35,6 @@ function App() {
           })}>Reset Simulation</Button>
         </div>
       </header>
-      <Button onClick={async()=>{
-        try{
-          await SimulationService.startSimulation()
-          navigator('/simulation')
-        }catch(e){
-          console.error(e)
-        }
-      }} icon={'bi bi-play-fill'} className="bg-sky-400 text-white fixed z-[990] bottom-20 right-6 rounded-full aspect-square text-3xl hover:after:content-['Start'] hover:aspect-auto after:text-base"/>
       <Outlet/>
     </div>
   );

@@ -6,6 +6,7 @@ import {createBrowserRouter,RouterProvider, Link} from 'react-router-dom'
 import { MapPage } from './pages/mapPage';
 import { SetupPage } from './pages/setupPage';
 import { SimulationPage } from './pages/simulationPage';
+import { PageTitle } from './components/pageTitle';
 
 
 const router = createBrowserRouter([
@@ -20,6 +21,10 @@ const router = createBrowserRouter([
       {
         path: '/simulation',
         element: <SimulationPage/>
+      },
+      {
+        path: '/vulnerability',
+        element: <PageTitle title={'Vulnerability Test'}/>
       },
       {
         index: true,

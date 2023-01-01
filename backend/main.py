@@ -1,7 +1,7 @@
 from typing import List
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse,RedirectResponse
 import json
 from core import Blueprint
 from pydantic import BaseModel
@@ -22,13 +22,24 @@ class JsonBluePrint(BaseModel):
   width: int
   height: int
   items: List[dict]
+  
+class SimulationStart(BaseModel):
+  agentCount: int
+  explosionDeathRadius: float
+  explosionFloorName: str
+  explosionTop: float
+  explosionLeft: float
+  
+class VulnerabilityStart(BaseModel):
+  agentCount: int
+  explosionDeathRadius: float
 
 simulationBuilding:List[Blueprint] = []
 simulationStatus = "SETTING UP"
 
 @app.get('/')
 def main():
-  return 'Hello World!!!'
+  return RedirectResponse('/docs')
 
 @app.post('/simulation/restart')
 def restartSimulation():
@@ -75,8 +86,13 @@ def getSimulationStatus():
   return status
 
 @app.post('/simulation/start')
-def simulationStart():
+def simulationStart(data:SimulationStart):
   simulationStatus = 'RUNNING'
+  return 'OK'
+
+@app.post('/vulnerability/start')
+def vulnerabilityStart(data:VulnerabilityStart):
+  #TODO: do somthing with maps and incoming data
   return 'OK'
 
 @app.post('/simulation/stop')

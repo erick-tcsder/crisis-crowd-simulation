@@ -1,15 +1,15 @@
 import { useEffect, useRef } from "react";
 import streamsaver from 'streamsaver'
 
-export const useStreamingAssets = (loading,maps,onNewState,onStreamingEnd= ()=>{console.log('ENDED')},filename = 'simulation',) => {
+export const useStreamingAssets = (loading,maps,simulationProps,onNewState,onStreamingEnd= ()=>{console.log('ENDED')},filename = 'simulation',) => {
   const positions = useRef([])
   useEffect(() => {
-    if(!loading && maps.length > 0){
+    if(!loading && maps.length > 0 && simulationProps && simulationProps?.peopleCount){
       let fileSaver = streamsaver.createWriteStream(`${filename}.json`)
       let writer = fileSaver.getWriter()
       let wroted = false
       const encode = TextEncoder.prototype.encode.bind(new TextEncoder())
-      writer.write(encode('{\n"positions": [\n'))
+      writer.write(encode(`{\n"simulationProps":${JSON.stringify(simulationProps)},\n"maps": ${JSON.stringify(maps)},\n"positions": [\n`))
       const eventSource = new EventSource("http://localhost:8000/stream",{withCredentials:false});
       eventSource.onmessage = (event) => {
         if(JSON.parse(event.data) === 'end'){
@@ -36,7 +36,7 @@ export const useStreamingAssets = (loading,maps,onNewState,onStreamingEnd= ()=>{
         eventSource.close()
       } 
     }
-  }, [filename, loading, maps.lenght, onNewState]);
+  }, [filename, loading, maps, simulationProps]);
 
   return {
     positions: positions.current
