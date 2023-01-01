@@ -7,6 +7,7 @@ import { MapPage } from './pages/mapPage';
 import { SetupPage } from './pages/setupPage';
 import { SimulationPage } from './pages/simulationPage';
 import { PageTitle } from './components/pageTitle';
+import { VulnerabilityPage } from './pages/vulnerabiblityPage';
 
 
 const router = createBrowserRouter([
@@ -24,7 +25,7 @@ const router = createBrowserRouter([
       },
       {
         path: '/vulnerability',
-        element: <PageTitle title={'Vulnerability Test'}/>
+        element: <VulnerabilityPage/>
       },
       {
         index: true,
@@ -35,7 +36,7 @@ const router = createBrowserRouter([
       <div className='flex flex-col m-auto'>
         <span className='text-8xl font-bold text-sky-400 '>404</span>
         <span className='uppercase text-xs tracking-tight text-white text-opacity-60'>Opps ... this is not the page you are looking for (I supose)</span>
-        <Link className='' to={'/'}>Home</Link>
+        <Link className='text-sky-400 mt-3 uppercase text-sm px-3 py-2 border-sky-400 border-2' to={'/'}>Home</Link>
       </div>
       <div className='blur-3xl bg-sky-400 opacity-25 aspect-square w-80 rounded-full fixed left-1/2 top-1/2'/>
     </div>

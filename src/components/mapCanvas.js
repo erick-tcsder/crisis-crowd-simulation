@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { EnviromentFactory, envMapper } from "./enviromentFactory";
 import { Utils } from "../utils";
 import Swal from "sweetalert2"; 
+import { Pedestrian } from "./pedestrianOverlay";
 
 
 export const getNewObstacle = async (coords,creating,map,canvas) => {
