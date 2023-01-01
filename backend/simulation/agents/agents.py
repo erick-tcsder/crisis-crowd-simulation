@@ -173,7 +173,7 @@ dt = 1  # Tiempo transcurrido entre pasos de la simulación
 n_steps = 300
 
 # Set number of pedestrians
-n_pedestrians = 4
+n_pedestrians = 20
 
 # Set up boundaries of simulation
 boundary_min = np.array([0, 0])
@@ -257,7 +257,7 @@ def animate(i):
 # Set up animation
 anim = animation.FuncAnimation(
     fig, animate, frames=range(n_steps),
-    interval=62)
+    interval=125)
 
 # Show plot
 plt.show()
