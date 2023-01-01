@@ -3,7 +3,7 @@ from typing_extensions import Self
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-from shapely.geometry import Point, Polygon
+from shapely import Point, Polygon, LineString, shortest_line
 from numpy.linalg import norm
 
 
@@ -97,30 +97,36 @@ class Pedestrian:
         p1 = wall.start  # wall start coordinate
         p2 = wall.end  # wall end coordinate
 
-        # Check that the point does not correspond to the ends of the segment.
-        if all(p1 == p) or all(p2 == p):
-            return np.zeros_like(p)
+        # # Check that the point does not correspond to the ends of the segment.
+        # if all(p1 == p) or all(p2 == p):
+        #     return np.zeros_like(p)
 
-        # Calculate the angle between AB and AP, if it is greater than 90 degrees return the distance between p1 and p
-        elif np.arccos(np.dot((p - p1) / norm(p - p1), (p2 - p1) / norm(p2 - p1))) > np.pi / 2:
-            return p - p1
+        # # Calculate the angle between AB and AP, if it is greater than 90 degrees return the distance between p1 and p
+        # elif np.arccos(np.dot((p - p1) / norm(p - p1), (p2 - p1) / norm(p2 - p1))) > np.pi / 2:
+        #     return p - p1
 
-        # Calculate the angle between AB and BP, if it is greater than 90 degrees return the distance between p2 and p.
-        elif np.arccos(np.dot((p - p2) / norm(p - p2), (p1 - p2) / norm(p1 - p2))) > np.pi / 2:
-            return p - p2
+        # # Calculate the angle between AB and BP, if it is greater than 90 degrees return the distance between p2 and p.
+        # elif np.arccos(np.dot((p - p2) / norm(p - p2), (p1 - p2) / norm(p1 - p2))) > np.pi / 2:
+        #     return p - p2
 
-        # Calculate the length of the hypotenuse.
-        p_o = norm(np.cross(p2 - p1, p1 - p)) / norm(p2 - p1)
-        # Calculate the length of the first leg.
-        p_p1 = norm(p - p1)
-        # Calculate the length of the second leg.
-        p1_o = np.sqrt(p_p1**2 - p_o**2)
+        # # Calculate the length of the hypotenuse.
+        # p_o = norm(np.cross(p2 - p1, p1 - p)) / norm(p2 - p1)
+        # # Calculate the length of the first leg.
+        # p_p1 = norm(p - p1)
+        # # Calculate the length of the second leg.
+        # p1_o = np.sqrt(p_p1**2 - p_o**2)
 
-        # Determine the point o by explicitly calculating the orthogonal vector.
-        o = p1 + (p2 - p1) / norm(p2 - p1) * p1_o
+        # # Determine the point o by explicitly calculating the orthogonal vector.
+        # o = p1 + (p2 - p1) / norm(p2 - p1) * p1_o
 
-        # Return the orthogonal vector.
-        return p - o
+        # # Return the orthogonal vector.
+        # return p - o
+
+        vp = list(shortest_line(LineString(
+            [Point(*p1), Point(*p2)]), Point(*p)).coords)
+        vp = [np.array(Point(*p).xy) for p in vp]
+
+        return np.fromiter((norm(x) for x in (vp[1]-vp[0])), dtype=float)
 
     # Function to calculate the repulsion force with respect to the walls.
     def wall_force(self, walls: List[Wall]):
@@ -144,14 +150,15 @@ class Pedestrian:
             # If the pedestrian is too close to the wall.
             if diW < self.j:
                 tiW = np.flip(niW)          # tangential direction
-                tiW[1] = -tiW[1]
+                tiW[0] = -tiW[0]
                 dv = np.dot(self.v, tiW)  # tangential velocity
 
                 # Body force that the pedestrian exerts on the wall.
-                f_body = (self.k * (r - diW) if diW > r else 0) * niW
+                f_body = (self.k * (r - diW)) * niW
 
                 # Friction force between pedestrian and wall.
-                f_friction = (self.K * (r - diW) * dv if diW > r else 0) * tiW
+                # f_friction = (self.K * (r - diW) * dv) * tiW
+                f_friction = 0
 
                 # Sum all forces to calculate the total force.
                 fiW += f_body + f_friction
