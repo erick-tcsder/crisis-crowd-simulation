@@ -55,41 +55,43 @@ class Pedestrian:
 
     def repulsion_force(self, pedestrians: List[Self]):
         # Initialize acceleration.
-        fij = np.zeros_like(self.p)
+        # fij = np.zeros_like(self.p)
 
-        # Add the force of interactions with other pedestrians.
-        for pedestrian in pedestrians:
-            # Ignore this pedestrian (it doesn't make sense to consider self-interactions).
-            if pedestrian == self:
-                continue
+        # # Add the force of interactions with other pedestrians.
+        # for pedestrian in pedestrians:
+        #     # Ignore this pedestrian (it doesn't make sense to consider self-interactions).
+        #     if pedestrian == self:
+        #         continue
 
-            # Calculate the distance from this pedestrian to the other.
-            dif = pedestrian.p - self.p                # difference vector
-            dij = norm(dif)                            # norm of difference vector (distance)
+        #     # Calculate the distance from this pedestrian to the other.
+        #     dif = pedestrian.p - self.p                # difference vector
+        #     dij = norm(dif)                            # norm of difference vector (distance)
 
-            # If the pedestrian is too close to the wall.
-            if dij < self.j:
-                nij = dif / dij                            # normalized difference vector
-                rij = self.r + pedestrian.r                # sum of the radii of both pedestrians
-                tij = np.flip(nij)                         # tangential direction
-                tij[0] = -tij[0]
-                # tangential velocity difference
-                dv = np.cross(pedestrian.v - self.v, tij)
+        #     # If the pedestrian is too close to the wall.
+        #     if dij < self.j:
+        #         nij = dif / dij                            # normalized difference vector
+        #         rij = self.r + pedestrian.r                # sum of the radii of both pedestrians
+        #         tij = np.flip(nij)                         # tangential direction
+        #         tij[0] = -tij[0]
+        #         # tangential velocity difference
+        #         dv = np.cross(pedestrian.v - self.v, tij)
 
-                # Repulsion force between pedestrians
-                f_repulsive = self.A * np.exp((rij - dij) / self.B) * nij
+        #         # Repulsion force between pedestrians
+        #         f_repulsive = self.A * np.exp((rij - dij) / self.B) * nij
 
-                # Body force between pedestrians.
-                f_body = (self.k * (rij - dij) if dij > rij else 0) * nij
+        #         # Body force between pedestrians.
+        #         f_body = (self.k * (rij - dij) if dij > rij else 0) * nij
 
-                f_friction = (self.K * (rij - dij)
-                              * dv if dij > rij else 0) * tij
+        #         f_friction = (self.K * (rij - dij)
+        #                       * dv if dij > rij else 0) * tij
 
-                # Sum all forces to calculate the total force.
-                fij += f_repulsive + f_body + f_friction
+        #         # Sum all forces to calculate the total force.
+        #         fij += f_repulsive + f_body + f_friction
 
-        # Return the total repulsion force between pedestrians.
-        return fij
+        # # Return the total repulsion force between pedestrians.
+        # return fij
+
+        return .0
 
     # Calculates the distance of a pedestrian to a wall.
     def wall_difference(self, wall: Wall):
@@ -122,8 +124,10 @@ class Pedestrian:
         # # Return the orthogonal vector.
         # return p - o
 
-        vp = list(shortest_line(LineString(
-            [Point(*p1), Point(*p2)]), Point(*p)).coords)
+        line = LineString(
+            [Point(*p1), Point(*p2)])
+
+        vp = list(shortest_line(line, Point(*p)).coords)
         vp = [np.array(Point(*p).xy) for p in vp]
 
         return np.fromiter((norm(x) for x in (vp[1]-vp[0])), dtype=float)
@@ -149,7 +153,7 @@ class Pedestrian:
 
             # If the pedestrian is too close to the wall.
             if diW < self.j:
-                tiW = np.flip(niW)          # tangential direction
+                tiW = np.flip(niW).copy()          # tangential direction
                 tiW[0] = -tiW[0]
                 dv = np.dot(self.v, tiW)  # tangential velocity
 
@@ -206,7 +210,7 @@ dt = 1  # Tiempo transcurrido entre pasos de la simulación
 n_steps = 300
 
 # Set number of pedestrians
-n_pedestrians = 10
+n_pedestrians = 1
 
 # Set up boundaries of simulation
 boundary_min = np.array([0, 0])
@@ -217,9 +221,9 @@ m = 80
 # Set up desired velocity of pedestrians
 v0 = 5
 # Set up parameters of interaction forces
-t = 0.125
+t = 0.0625
 # Repulsion force
-A = 2e3
+A = 2e4
 # Repulsion distance
 B = 0.08
 # Repulsion constants
@@ -235,7 +239,7 @@ s = 100
 # Set up initial positions and velocities of pedestrians
 pedestrians = []
 for i in range(n_pedestrians):
-    p = np.random.uniform(boundary_min, boundary_max, size=2)
+    p = np.random.uniform([0, 50], boundary_max, size=2)
     v = np.zeros(2)
     pedestrians.append(
         Pedestrian(
@@ -290,7 +294,7 @@ def animate(i):
 # Set up animation
 anim = animation.FuncAnimation(
     fig, animate, frames=range(n_steps),
-    interval=125)
+    interval=62)
 
 # Show plot
 plt.show()
