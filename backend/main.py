@@ -100,7 +100,7 @@ def simulationStop():
   simulationStatus = 'STOPPED'
   return 'OK'
 
-async def stream_foo():
+async def stream_simulation():
   i = 0
   while True:
     if i == 10: break
@@ -109,6 +109,19 @@ async def stream_foo():
     await asyncio.sleep(0.5)
   yield f"data: {json.dumps('end')}\n\n"
 
-@app.get("/stream")
+async def stream_vulnerabilities():
+  i = 0
+  while True:
+    if i == 10: break
+    yield f"data: {json.dumps({'bar': i})}\n\n"
+    i += 1
+    await asyncio.sleep(0.5)
+  yield f"data: {json.dumps('end')}\n\n"
+
+@app.get("/simulation/stream")
 async def stream():
-  return StreamingResponse(stream_foo(), media_type="text/event-stream")
+  return StreamingResponse(stream_simulation(), media_type="text/event-stream")
+
+@app.get("/vulnerabilities/stream")
+async def stream():
+  return StreamingResponse(stream_vulnerabilities(), media_type="text/event-stream")
