@@ -8,7 +8,7 @@ import parameters as params
 
 from .agents import Pedestrian
 from .environment.blueprint import Blueprint
-from .environment.enviroment_objects import Door, EnvObj
+from .environment.environment_objects import Door, EnvObj
 from .navmesh import Navmesh, build_navmesh, a_star, clamp_route
 
 

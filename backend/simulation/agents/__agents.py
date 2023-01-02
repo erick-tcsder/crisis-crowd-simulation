@@ -4,7 +4,7 @@ from typing_extensions import Self
 import numpy as np
 from shapely import Point, MultiPolygon, LineString, shortest_line, prepare, MultiLineString, Polygon
 from numpy.linalg import norm
-from ..environment.enviroment_objects import EnvObj
+from ..environment.environment_objects import EnvObj
 import simulation.parameters as params
 
 

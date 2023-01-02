@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import List
-from .enviroment_objects import EnvObj
-from .enviroment_objects import *
+from .environment_objects import EnvObj
+from .environment_objects import *
 
 
 class ObjectCategory(Enum):
