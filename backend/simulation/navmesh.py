@@ -189,6 +189,9 @@ def a_star(navmesh: Navmesh, start: Point, end: Point) -> Tuple[List[Point], flo
 
     heap.heappush(h, HeapObject(weight(a_star_s[0], None), [a_star_s[0]]))
     while True:
+        if len(h) == 0:
+            return ([], -1)
+
         o = heap.heappop(h)
         w = o.weight
         route = o.route
@@ -219,9 +222,6 @@ def a_star(navmesh: Navmesh, start: Point, end: Point) -> Tuple[List[Point], flo
             heap.heappush(h, HeapObject(weight(n, (w, route[-1])), route+[n]))
 
         passed.add(route[-1])
-        
-        if len(h)==0:
-            return ([],-1)
 
 
 def clamp_route(navmesh: Navmesh, point: Point, route: List[Point]) -> Tuple[List[Point], bool]:
