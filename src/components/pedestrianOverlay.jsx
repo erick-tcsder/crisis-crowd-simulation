@@ -2,29 +2,17 @@ import { useEffect, useRef } from "react"
 import classNames from "classnames"
 import {Utils} from "../utils"
 
-export const PedestrianOverlay = ({ map, pedestrianData }) => {
-  const overlayRef = useRef(null)
 
-  useEffect(()=>{
-
-  },[map,pedestrianData])
-
-  return (
-    <div>
-
-    </div>
-  )
-}
 
 export const Pedestrian = ({ top, left, width, status='ALIVE',map,canvas})=>{
   const ref = useRef(null)
   useEffect(()=>{
     if(!ref.current || !top || !left || !width || !map || !canvas) return
-    
+    const maxWidth = Math.max(Utils.getMToPx(map,canvas,width),20)
     ref.current.style.top = `${Utils.getMToPx(map,canvas,top - (width/2))}px`
     ref.current.style.left = `${Utils.getMToPx(map,canvas,left - (width/2))}px` 
-    ref.current.style.width = `${Utils.getMToPx(map,canvas,width)}px`
-    ref.current.style.height = `${Utils.getMToPx(map,canvas,width)}px`
+    ref.current.style.width = `${maxWidth}px`
+    ref.current.style.height = `${maxWidth}px`
   },[canvas, left, map, top, width])
   
   return <div className={classNames("relative rounded-full transition-all text-white",{
