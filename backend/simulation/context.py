@@ -126,9 +126,9 @@ class SimulationContext:
             xs[i] = x
             ys[i] = y
 
-        # Generate mass of pedestrians
-        # TODO: Use random variable
-        ms = np.repeat(params.PEDESTRIAN_MASS, pedestrians)
+        # Assumed ages between 18 and 65. Distribution and parameters
+        # from DOI:10.1111/j.1539-6924.2006.00856.x
+        ms = rs.lognormal(79.96, 20.73, pedestrians)
 
         # Radius (distance from shoulder to shoulder) has uniform distribution
         rads = rs.uniform(.25, .35, pedestrians)
