@@ -9,7 +9,7 @@ import parameters as params
 from .agents import Pedestrian
 from .environment.blueprint import Blueprint
 from .environment.enviroment_objects import Door, EnvObj
-from .navmesh import Navmesh, build_navmesh
+from .navmesh import Navmesh, build_navmesh, a_star, clamp_route
 
 
 class SimulationContext:
@@ -20,15 +20,18 @@ class SimulationContext:
     safe_zone_map: MultiPolygon  # Map is what is safe zone
     danger_zone_map: MultiPolygon  # Map is what is danger zone
 
+    danger_zones: List[Polygon]
+    safe_zones: List[Polygon]
+
     navmesh: Navmesh
     routes: List[List[Point]]
 
     def __init__(self, map: Blueprint) -> None:
         self.map_blueprint = map
 
-        obs: List[EnvObj] = []
-        cull: List[EnvObj] = []
-        sz: List[EnvObj] = []
+        obs: List[Polygon] = []
+        cull: List[Polygon] = []
+        sz: List[Polygon] = []
         dz: List[EnvObj] = []
 
         for obj in map.objects:
@@ -38,15 +41,15 @@ class SimulationContext:
             try:
                 is_obs = obj.isObstacle
                 if is_obs:
-                    obs.append(obj)
+                    obs.append(Polygon(obj.getRoundingBox()))
             except:
                 pass
             if isinstance(obj, Door):
-                cull.append()
+                cull.append(Polygon(obj.getRoundingBox()))
             try:
                 is_sz = obj.isSafeZone
                 if is_sz:
-                    sz.append(obj)
+                    sz.append(Polygon(obj.getRoundingBox()))
             except:
                 pass
             try:
@@ -54,6 +57,8 @@ class SimulationContext:
                 dz.append(obj)
             except:
                 pass
+            self.danger_zones = dz
+            self.safe_zones = sz
 
         # Generate all maps
         b_x = [.0]*2+[self.map_blueprint.width]*2
@@ -90,10 +95,17 @@ class SimulationContext:
         )
 
     def setup_navmesh(self):
+        del self.navmesh
+        self.agents.clear()
+        self.routes.clear()
+
         self.navmesh = build_navmesh(
             self.obstacle_map, params.NAVEGABLE_MINIMUM_DISTANCE)
 
     def setup_pdestrians(self, pedestrians: int = 30, seed: int | None = None):
+        self.agents.clear()
+        self.routes.clear()
+
         rs = np.random.RandomState(seed)
 
         flat = self.navmesh.flat_polygon
@@ -119,6 +131,45 @@ class SimulationContext:
         ms = np.repeat(params.PEDESTRIAN_MASS, pedestrians)
 
         # Radius (distance from shoulder to shoulder) has uniform distribution
-        rads = rs.uniform(.25, .35)
+        rads = rs.uniform(.25, .35, pedestrians)
 
-        # TODO: Create Pedestrian objects
+        self.agents = [
+            Pedestrian(
+                map=self.obstacle_map,
+                map_boundary=self.obstacle_map.boundary,
+                danger_zones=self.danger_zones,
+                position=np.array(x, y),
+                mass=m,
+                radius=rad
+            ) for x, y, m, rad in zip(xs, ys, ms, rads)
+        ]
+
+    def setup_routes(self, seed: int | None = None):
+        self.routes.clear()
+
+        rs = np.random.RandomState(seed)
+
+        zone_to_go = rs.randint(0, len(self.safe_zones), len(self.agents))
+        dests = [self.safe_zones[i].centroid for i in zone_to_go]
+
+        for i, p in enumerate(self.agents):
+            r, _ = a_star(self.navmesh, p.position_point, dests[i])
+
+            self.routes.append(r[1:])
+
+    def update(self):
+        for i in range(len(self.agents)):
+            a = self.agents[i]
+            r = self.routes[i]
+
+            # Update direction according to route and position
+            self.routes[i], _ = clamp_route(
+                self.navmesh, a.position_point, r)
+
+            vector = np.array(r[0].xy)-a.position
+
+            a.direction = vector/np.linalg.norm(vector)
+
+            # Update model data
+            a.update_velocity(self.agents)
+            a.update_position()

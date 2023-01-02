@@ -1,6 +1,6 @@
 from functools import lru_cache, total_ordering
 from typing import Dict, List, Set, Tuple
-from shapely import Point, Polygon, MultiPolygon, LineString
+from shapely import Point, Polygon, MultiPolygon, LineString, prepare
 from shapely.ops import triangulate
 from dataclasses import dataclass
 import heapq as heap
@@ -41,6 +41,9 @@ def build_navmesh(
 
     # Adjacent list, tells what are the neighbors points of a point
     adj: ADJACENT_MATRIX = {}
+
+    prepare(map)
+    prepare(multi)
 
     nv = Navmesh(map, multi, {}, {})
     adj: ADJACENT_MATRIX = nv.adjacent
@@ -149,8 +152,6 @@ def a_star(navmesh: Navmesh, start: Point, end: Point) -> Tuple[List[Point], flo
     in order to simplify the search space and therefore not optimum is assured. Returns a route
     to follow as a list of points.
     """
-    # TODO: Fix back-travel at start and end
-
     # First thing is to find the closest point in the navmesh to use as start and end
     a_star_s = approx_navmesh(navmesh, start)
     a_star_e = approx_navmesh(navmesh, end)

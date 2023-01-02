@@ -14,6 +14,7 @@ class Pedestrian:
     map_boundary: MultiLineString
     danger_zones: List[EnvObj]
     position: np.ndarray
+    position_point: Point
     mass: float = params.PEDESTRIAN_MASS
     radius: float = params.PEDESTRIAN_RADIUS
     direction: np.ndarray = np.array([.0, .0])
@@ -21,17 +22,13 @@ class Pedestrian:
     velocity = np.array([.0, .0])
 
     def repulsion_force(self, pedestrians: List[Self]):
-        fij = np.zeros_like(self.p)
-        p = Point(*self.position)
-
-        prepare(p)
+        fij = np.zeros_like(self.position)
 
         # Add the force of interactions with the other pedestrians.
         for ped in pedestrians:
             if ped == self:
                 continue
 
-            # line = LineString([Point(*ped.p), Point(*self.p)])
             line = [ped.position, self.position]
             dif = np.fromiter((norm(x) for x in (line[1]-line[0])), dtype=float)
 
@@ -50,17 +47,17 @@ class Pedestrian:
             geo = self.map_boundary
         p = self.position    # pedestrian position
 
-        vp = list(shortest_line(geo_boundary, Point(*p)).coords)
-        vp = [np.array(Point(*p).xy) for p in vp]
+        vp = list(shortest_line(geo_boundary, self.position_point).coords)
+        vp = [np.array(self.position_point.xy) for p in vp]
 
         r = np.fromiter((norm(x) for x in (vp[1]-vp[0])), dtype=float)
-        if Point(*p).within(geo):
+        if self.position_point.within(geo):
             return r*-1
 
     # Function to calculate the repulsion force with respect to the walls.
     def wall_force(self) -> float:
         # Initialize acceleration.
-        fiW = np.zeros_like(self.p)
+        fiW = np.zeros_like(self.position)
 
         # Add the force of interactions with the walls.
         dif = self.wall_difference()  # difference vector
@@ -75,7 +72,7 @@ class Pedestrian:
     # Function to calculate the repulsion force with respect to the danger zones.
     def danger_force(self) -> float:
         # Initialize acceleration.
-        fiF = np.zeros_like(self.p)
+        fiF = np.zeros_like(self.position)
 
         for zone in self.danger_zones:
             geo = Polygon(zone.getRoundingBox())
@@ -148,3 +145,4 @@ class Pedestrian:
     def update_position(self):
         # Updates the position with respect to speed and elapsed time (p = v * t)
         self.position += self.velocity * params.TIME_STEP
+        self.position_point = Point(*self.position)
