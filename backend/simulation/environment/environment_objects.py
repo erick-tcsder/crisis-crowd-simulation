@@ -201,7 +201,7 @@ class EvacSign(RectShaped):
 class DamageZone(RectShaped):
   def __init__(self, coords: List[Tuple[float,float]], damageFactor:float):
     super().__init__(coords)
-    self.isObstacle = False
+    self.isObstacle = True
     self.damageFactor = damageFactor
     
   def toJson(self):
