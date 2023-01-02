@@ -154,7 +154,10 @@ class SimulationContext:
         dests = [self.safe_zones[i].centroid for i in zone_to_go]
 
         for i, p in enumerate(self.agents):
-            r, _ = a_star(self.navmesh, p.position_point, dests[i])
+            r, l = a_star(self.navmesh, p.position_point, dests[i])
+
+            if l == -1:
+                self.routes.append([])
 
             self.routes.append(r[1:])
 
@@ -162,6 +165,9 @@ class SimulationContext:
         for i in range(len(self.agents)):
             a = self.agents[i]
             r = self.routes[i]
+
+            if len(r) == 0:
+                continue
 
             # Update direction according to route and position
             self.routes[i], _ = clamp_route(
