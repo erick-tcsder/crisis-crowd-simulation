@@ -22,13 +22,9 @@ class Navmesh:
 
 
 def build_navmesh(
-    map: Polygon,
-    obstacles: List[Polygon],
-    space: float = .005
+    map: MultiPolygon,
+    space: float = .5
 ) -> Navmesh:
-    map = MultiPolygon([map])
-    for obs in obstacles:
-        map = map.difference(obs)
 
     # Space parameter define how much space is needed in an area
     # allow a person go through it
@@ -204,7 +200,8 @@ def a_star(navmesh: Navmesh, start: Point, end: Point) -> Tuple[List[Point], flo
             # the second point of the route in the A* and the real start point
             # is walkable, if that so then delete the first point in the route.
             # This will always shorten the path.
-            route, _ = clamp_route(navmesh, start, route)
+            if LineString([start, route[1]]).within(navmesh.flat_polygon):
+                route = route[1:]
             # Similar process but with the last points
             if LineString([end, route[-2]]).within(navmesh.flat_polygon):
                 route=route[:-1]
@@ -224,9 +221,11 @@ def a_star(navmesh: Navmesh, start: Point, end: Point) -> Tuple[List[Point], flo
 
 def clamp_route(navmesh: Navmesh, point: Point, route: List[Point]) -> Tuple[List[Point], bool]:
     """
-    Reduce the route if the given point can go directly to the next point on the route.
+    Reduce the route if the given point can go directly to a late point on the route.
     Returns the route and a boolean telling if it changed or not.
     """
-    if LineString([point, route[1]]).within(navmesh.flat_polygon):
-        return (route[1:], True)
-    return (route, False)
+    for pi in range(len(route)-1, -1, -1):
+        p = route[pi]
+        if LineString([point, p]).within(navmesh.flat_polygon):
+            return (route[pi:], True)
+        return (route, False)
