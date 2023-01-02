@@ -146,3 +146,11 @@ class Pedestrian:
         # Updates the position with respect to speed and elapsed time (p = v * t)
         self.position += self.velocity * params.TIME_STEP
         self.position_point = Point(*self.position)
+
+    def toJson(self):
+        return {
+            'top': self.position[1],
+            'left': self.position[0],
+            'width': self.radius*2,
+            'status': 'ALIVE'
+        }

@@ -4,7 +4,7 @@ from typing import List
 import numpy as np
 from shapely import MultiPolygon, Point, Polygon, prepare
 
-import parameters as params
+from .parameters import *
 
 from .agents import Pedestrian
 from .environment.blueprint import Blueprint
@@ -14,7 +14,7 @@ from .navmesh import Navmesh, build_navmesh, a_star, clamp_route
 
 class SimulationContext:
     map_blueprint: Blueprint
-    agents: List[Pedestrian]
+    agents: List[Pedestrian] = []
 
     obstacle_map: MultiPolygon  # Map is what is'nt obstacle
     safe_zone_map: MultiPolygon  # Map is what is safe zone
@@ -24,7 +24,7 @@ class SimulationContext:
     safe_zones: List[Polygon]
 
     navmesh: Navmesh
-    routes: List[List[Point]]
+    routes: List[List[Point]] = []
 
     def __init__(self, map: Blueprint) -> None:
         self.map_blueprint = map
@@ -69,24 +69,26 @@ class SimulationContext:
         # Cut the obstacles
         for ob in obs:
             self.obstacle_map = self.obstacle_map.difference(
-                Polygon(ob.getRoundingBox())
+                ob
             )
 
         # Paste the doors
         for d in cull:
             self.obstacle_map = self.obstacle_map.union(
-                Polygon(d.getRoundingBox())
+                d
             )
 
         # Fit the place
         self.obstacle_map = self.obstacle_map.intersection(base)
 
         # Put some safety distance
-        map = map.buffer(-.01, cap_style='flat', join_style='bevel')
+        self.obstacle_map = self.obstacle_map.buffer(-.01, cap_style='flat', join_style='bevel')
+        if isinstance(self.obstacle_map,Polygon):
+            self.obstacle_map=MultiPolygon([self.obstacle_map])
 
         self.safe_zone_map: MultiPolygon = reduce(
             lambda x, y: x.union(y),  # union
-            [Polygon(obj.getRoundingBox()) for obj in sz]  # of all safe zones
+            sz  # of all safe zones
         )
 
         self.danger_zone_map: MultiPolygon = reduce(
@@ -95,12 +97,11 @@ class SimulationContext:
         )
 
     def setup_navmesh(self):
-        del self.navmesh
         self.agents.clear()
         self.routes.clear()
-
+        print("Building navmesh...")
         self.navmesh = build_navmesh(
-            self.obstacle_map, params.NAVEGABLE_MINIMUM_DISTANCE)
+            self.obstacle_map, NAVEGABLE_MINIMUM_DISTANCE)
 
     def setup_pdestrians(self, pedestrians: int = 30, seed: int | None = None):
         self.agents.clear()

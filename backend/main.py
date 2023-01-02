@@ -3,9 +3,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse,RedirectResponse
 import json
-from core import Blueprint
+from simulation.environment.blueprint import Blueprint, DamageZone
 from pydantic import BaseModel
 import asyncio
+from simulation.context import Pedestrian, SimulationContext
+import numpy as np
+import time
 
 app = FastAPI(debug=True)
 
@@ -37,6 +40,8 @@ class VulnerabilityStart(BaseModel):
 simulationBuilding:List[Blueprint] = []
 simulationStatus = "SETTING UP"
 
+simulationContext : SimulationContext = None
+
 @app.get('/')
 def main():
   return RedirectResponse('/docs')
@@ -59,6 +64,8 @@ def getMapByName(name:str):
 
 @app.post('/map')
 def addMap(map:JsonBluePrint):
+  if len(simulationBuilding) > 0:
+    return 'Map already exists',400
   if simulationStatus == "RUNNING" :
     return 'Simulation is running',400
   if map.name in [i.name for i in simulationBuilding]:
@@ -81,14 +88,23 @@ def getSimulationStatus():
   status = {
     "status": simulationStatus  
   }
-  if simulationStatus == 'RUNNING' :
-    status.conection = '8080'
   return status
 
 @app.post('/simulation/start')
 def simulationStart(data:SimulationStart):
   simulationStatus = 'RUNNING'
-  return 'OK'
+  building = simulationBuilding[0]
+  start = (data.explosionLeft - data.explosionDeathRadius/2,data.explosionTop - data.explosionDeathRadius/2)
+  end = (data.explosionLeft + data.explosionDeathRadius/2,data.explosionTop + data.explosionDeathRadius/2)
+  damageZone = DamageZone([start,end],0.9)
+  building.objects.append(damageZone)
+  simulationContext = SimulationContext(building)
+  simulationContext.setup_navmesh()
+  simulationContext.setup_pdestrians(data.agentCount)
+  simulationContext.setup_routes()
+  return {
+    'status': simulationStatus
+  }
 
 @app.post('/vulnerability/start')
 def vulnerabilityStart(data:VulnerabilityStart):
@@ -101,12 +117,15 @@ def simulationStop():
   return 'OK'
 
 async def stream_simulation():
-  i = 0
+  if simulationStatus != 'RUNNING':
+    yield f"data: {json.dumps('end')}\n\n"
+  startTime = time.time()
   while True:
-    if i == 10: break
-    yield f"data: {json.dumps({'foo': i})}\n\n"
-    i += 1
-    await asyncio.sleep(0.5)
+    if time.time() - startTime > 300: break
+    await simulationContext.update()
+    data : List[Pedestrian] = np.copy(simulationContext.agents)
+    jsonedData = [i.toJson() for i in data]
+    yield f"data: {json.dumps(jsonedData)}\n\n"
   yield f"data: {json.dumps('end')}\n\n"
 
 async def stream_vulnerabilities():

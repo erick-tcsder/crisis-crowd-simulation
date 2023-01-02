@@ -29,7 +29,8 @@ def build_navmesh(
     # Space parameter define how much space is needed in an area
     # allow a person go through it
     map = map.buffer(-space, cap_style='flat', join_style='bevel')
-
+    if isinstance(map,Polygon):
+        map=MultiPolygon([map])
     # Delaunay triangulation, works bad for non-convex
     tris = []
     for p in map.geoms:

@@ -22,7 +22,13 @@ class RectShaped(EnvObj):
     self.coords = coords
     
   def getRoundingBox(self) -> List[Tuple[float,float]]:
-    return self.coords
+    return [
+      (self.coords[0][0],self.coords[0][1]),
+      (self.coords[1][0],self.coords[0][1]),
+      (self.coords[1][0],self.coords[1][1]),
+      (self.coords[0][0],self.coords[1][1]),
+      (self.coords[0][0],self.coords[0][1])
+    ]
   
   
   
@@ -38,6 +44,7 @@ class CircleShaped(EnvObj):
     box=[]
     for i in [i for i in range(NAGON_SIDES)]:
       box.append((self.center[0]+halfDiag*math.cos(i*singleAngle),self.center[1]+halfDiag*math.sin(i*singleAngle)))
+    box.append(box[0])
     return box
 
 class RectObs(RectShaped):
@@ -198,7 +205,7 @@ class EvacSign(RectShaped):
     angle = 180 if angle == 'left' else (0 if angle == 'right' else (90 if angle == 'up' else 270))
     return EvacSign([(json['props']['left'],json['props']['top']),(json['props']['left']+json['props']['width'],json['props']['top']+json['props']['height'])],angle)
     
-class DamageZone(RectShaped):
+class DamageZone(CircleShaped):
   def __init__(self, coords: List[Tuple[float,float]], damageFactor:float):
     super().__init__(coords)
     self.isObstacle = True
@@ -212,6 +219,7 @@ class DamageZone(RectShaped):
         'left':self.coords[0][0],
         'width':self.coords[1][0]-self.coords[0][0],
         'height':self.coords[1][1] - self.coords[0][1],
+        'radius': self.radius*2,
         'damageFactor': self.damageFactor
       }
     }
