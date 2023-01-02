@@ -1,7 +1,7 @@
 from functools import lru_cache, total_ordering
 from typing import Dict, List, Set, Tuple
 from shapely import Point, Polygon, MultiPolygon, LineString, prepare
-from shapely.ops import triangulate
+from utils.geometry import to_triangles as triangulate
 from dataclasses import dataclass
 import heapq as heap
 
@@ -29,21 +29,23 @@ def build_navmesh(
     # Space parameter define how much space is needed in an area
     # allow a person go through it
     map = map.buffer(-space, cap_style='flat', join_style='bevel')
-    if isinstance(map,Polygon):
-        map=MultiPolygon([map])
+    if isinstance(map, Polygon):
+        map = MultiPolygon([map])
+
+    prepare(map)
+
     # Delaunay triangulation, works bad for non-convex
     tris = []
     for p in map.geoms:
         # For each polygon triangulate an select only the ones within
         # original figure (clip)
-        tris.extend((t for t in triangulate(p) if t.within(map)))
+        tris.extend((t for t in triangulate(p)))
 
     multi = MultiPolygon(tris)
 
     # Adjacent list, tells what are the neighbors points of a point
     adj: ADJACENT_MATRIX = {}
 
-    prepare(map)
     prepare(multi)
 
     nv = Navmesh(map, multi, {}, {})
@@ -146,6 +148,7 @@ class HeapObject:
     def __lt__(self, __o: object) -> bool:
         return sum(self.weight) < sum(__o.weight)
 
+
 def a_star(navmesh: Navmesh, start: Point, end: Point) -> Tuple[List[Point], float]:
     """
     Find the closest-enough path from `start` to `end` using the given navmesh, is not actually
@@ -209,8 +212,8 @@ def a_star(navmesh: Navmesh, start: Point, end: Point) -> Tuple[List[Point], flo
                 route = route[1:]
             # Similar process but with the last points
             if LineString([end, route[-2]]).within(navmesh.flat_polygon):
-                route=route[:-1]
-                
+                route = route[:-1]
+
             # So this is the route
             # Real start and end point must be added
             full_route = [start]+route+[end]
