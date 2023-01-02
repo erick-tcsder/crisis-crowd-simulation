@@ -2,8 +2,9 @@ from dataclasses import dataclass
 from typing import List
 from typing_extensions import Self
 import numpy as np
-from shapely import Point, MultiPolygon, LineString, shortest_line, prepare, MultiLineString
+from shapely import Point, MultiPolygon, LineString, shortest_line, prepare, MultiLineString, Polygon
 from numpy.linalg import norm
+from ..environment.enviroment_objects import EnvObj
 import simulation.parameters as params
 
 
@@ -11,6 +12,7 @@ import simulation.parameters as params
 class Pedestrian:
     map: MultiPolygon
     map_boundary: MultiLineString
+    danger_zones: List[EnvObj]
     position: np.ndarray
     mass: float = params.PEDESTRIAN_MASS
     radius: float = params.PEDESTRIAN_RADIUS
@@ -30,9 +32,7 @@ class Pedestrian:
                 continue
 
             # line = LineString([Point(*ped.p), Point(*self.p)])
-            line = [
-                np.array(Point(*p).xy)
-                for p in LineString([Point(*ped.position), p]).coords]
+            line = [ped.position, self.position]
             dif = np.fromiter((norm(x) for x in (line[1]-line[0])), dtype=float)
 
             j = self.radius + ped.radius
@@ -43,14 +43,18 @@ class Pedestrian:
         return fij
 
     # Calculates the distance of a pedestrian to a wall.
-    def wall_difference(self):
+    def wall_difference(self, geo=None, geo_boundary=None):
+        if geo is None:
+            geo = self.map
+        if geo_boundary is None:
+            geo = self.map_boundary
         p = self.position    # pedestrian position
 
-        vp = list(shortest_line(self.map_boundary, Point(*p)).coords)
+        vp = list(shortest_line(geo_boundary, Point(*p)).coords)
         vp = [np.array(Point(*p).xy) for p in vp]
 
         r = np.fromiter((norm(x) for x in (vp[1]-vp[0])), dtype=float)
-        if Point(*p).within(self.map):
+        if Point(*p).within(geo):
             return r*-1
 
     # Function to calculate the repulsion force with respect to the walls.
@@ -68,13 +72,35 @@ class Pedestrian:
         # Return the total force between pedestrian and walls.
         return fiW
 
-    def calculate_forces(self, dif: np.ndarray, j: float) -> float:
+    # Function to calculate the repulsion force with respect to the danger zones.
+    def danger_force(self) -> float:
+        # Initialize acceleration.
+        fiF = np.zeros_like(self.p)
+
+        for zone in self.danger_zones:
+            geo = Polygon(zone.getRoundingBox())
+            # Add the force of interactions with the zone.
+            dif = self.wall_difference(
+                geo, geo.boundary
+            )  # difference vector
+
+            j = self.radius
+
+            fiF += self.calculate_forces(
+                dif, j, zone.damageFactor*params.DANGER_MULTIPLIER, params.DANGER_DISTANCE_RATIO)
+
+        # Return the total force between pedestrian and walls.
+        return fiF
+
+    def calculate_forces(self, dif: np.ndarray, j: float,
+                         a: float = params.A_CONSTANT,
+                         b: float = params.B_CONSTANT) -> float:
         diW = norm(dif)
         r = self.radius                            # pedestrian radius
         niW = dif / diW                            # normalized difference vector
 
-        f_repulsive = params.A_CONSTANT * np.exp(
-            (r - diW) / params.B_CONSTANT) * niW
+        f_repulsive = a * np.exp(
+            (r - diW) / b) * niW
 
         f_total = f_repulsive
 
@@ -105,9 +131,11 @@ class Pedestrian:
         # We calculate the repulsive force of this pedestrian with the walls.
         fiW = self.wall_force()
 
+        fiF = self.danger_force()
+
         # We calculate the pedestrians aceleration
         acc = (params.STANDARD_VELOCITY * self.direction -
-               self.velocity) / params.TIME_STEP + (fij + fiW) / self.mass
+               self.velocity) / params.TIME_STEP + (fij + fiW + fiF) / self.mass
         # Update
         self.velocity += acc * params.TIME_STEP
 
