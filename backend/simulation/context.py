@@ -141,7 +141,8 @@ class SimulationContext:
                 danger_zones=self.danger_zones,
                 position=np.array(x, y),
                 mass=m,
-                radius=rad
+                radius=rad,
+                position_point=Point(x, y)
             ) for x, y, m, rad in zip(xs, ys, ms, rads)
         ]
 
