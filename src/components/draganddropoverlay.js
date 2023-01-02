@@ -43,19 +43,17 @@ function DragAndDropOverlay() {
     };
     window.addEventListener('dragenter', handleDragEnter);
     overlay.addEventListener('dragleave', handleDragLeave);
-    overlay.addEventListener('dragover', handleDragEnter);
+    window.addEventListener('dragover', handleDragEnter);
     overlay.addEventListener('drop', handleDrop);
     ovBox.addEventListener('dragleave', handleDragLeave);
-    ovBox.addEventListener('dragover', handleDragEnter);
     ovBox.addEventListener('drop', handleDrop);
 
     return () => {
       window.removeEventListener('dragenter', handleDragEnter);
       ovBox.removeEventListener('dragleave', handleDragLeave);
-      ovBox.removeEventListener('dragover', handleDragEnter);
+      window.removeEventListener('dragover', handleDragEnter);
       ovBox.removeEventListener('drop', handleDrop);
       overlay.removeEventListener('dragleave', handleDragLeave);
-      overlay.removeEventListener('dragover', handleDragEnter);
       overlay.removeEventListener('drop', handleDrop);
     };
   },[])

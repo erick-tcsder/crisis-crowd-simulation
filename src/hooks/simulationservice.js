@@ -12,8 +12,20 @@ export class SimulationService{
     return await SimulationService.axios.post('/simulation/restart');
   }
 
-  static async startSimulation(){
-    return await SimulationService.axios.post('/simulation/start');
+  static async startSimulation(agentCount,explosionDeathRadius,explosionFloorName,explosionTop,explosionLeft){
+    return await SimulationService.axios.post('/simulation/start',{
+      agentCount,
+      explosionDeathRadius,
+      explosionFloorName,
+      explosionTop,
+      explosionLeft,
+    });
+  }
+  static async startVulnerabilities(agentCount,explosionDeathRadius){
+    return await SimulationService.axios.post('/vulnerability/start',{
+      agentCount,
+      explosionDeathRadius,
+    });
   }
 
   static async stopSimulation(){

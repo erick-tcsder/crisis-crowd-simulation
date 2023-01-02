@@ -15,8 +15,8 @@ export const MapPage = () => {
   useEffect(()=>{
     setMap(map=>({
       ...map,
-      width: params.get('w') || 100,
-      height: params.get('h') || 100
+      width: parseFloat(params.get('w')) || 100,
+      height: parseFloat(params.get('h')) || 100
     }))
   },[params])
   return (

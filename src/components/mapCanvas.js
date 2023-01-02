@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { EnviromentFactory, envMapper } from "./enviromentFactory";
 import { Utils } from "../utils";
 import Swal from "sweetalert2"; 
+import { Pedestrian } from "./pedestrianOverlay";
 
 
 export const getNewObstacle = async (coords,creating,map,canvas) => {
@@ -139,7 +140,7 @@ export const getNewObstacle = async (coords,creating,map,canvas) => {
   }
 }
 
-export const MapCanvas = ({ map, handleChangeMap, creating, handleUncreate, ...props }) => {
+export const MapCanvas = ({ map, handleChangeMap, creating, handleUncreate, havePedestrians = false, pedestrianPositions = [], ...props }) => {
   const canvasRef = useRef(null);
   const creatingShape = useRef(null);
   const creatingCanvas = useRef(null);
@@ -271,6 +272,11 @@ export const MapCanvas = ({ map, handleChangeMap, creating, handleUncreate, ...p
           key={index}
         />
       ))}
+      {havePedestrians ? pedestrianPositions.map((p,i)=>{
+        return (
+          <Pedestrian canvas={dims} left={p.left} map={map} top={p.top} width={p.width} key={i} status={p.status}/>
+        )
+      }) : <></>}
       <div ref={creatingShape}/>
       <div className="" ref={creatingCanvas}></div>
     </div>

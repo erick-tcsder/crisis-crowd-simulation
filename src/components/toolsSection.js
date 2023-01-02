@@ -32,7 +32,7 @@ export const ToolsSection = ({setCreating,creating, map, setMap,...props}) => {
         })}>Circle</Button>
       </div>
 
-      <span className="mt-5 mb-1 uppercase text-xs opacity-50">Signs</span>
+      {/* <span className="mt-5 mb-1 uppercase text-xs opacity-50">Signs</span>
       <div className="flex flex-row justify-start gap-3">
         <Button onClick={()=>handleCreateObj('UP')} icon={'bi bi-arrow-up'} className={classNames({
             'rounded-md px-3 py-2':true,
@@ -54,7 +54,7 @@ export const ToolsSection = ({setCreating,creating, map, setMap,...props}) => {
             'bg-sky-500 text-white':creating==='LEFT',
             'ring-2 ring-sky-500 text-sky-500 hover:bg-sky-400 hover:bg-opacity-30 ring-inset': creating !== 'LEFT'
           })}/>
-      </div>
+      </div> */}
 
       <span className="mt-5 mb-1 uppercase text-xs opacity-50">Miscellaneous</span>
       <div className="flex flex-row justify-start gap-3 flex-wrap">
@@ -68,12 +68,12 @@ export const ToolsSection = ({setCreating,creating, map, setMap,...props}) => {
             'bg-sky-500 text-white':creating==='SAFE_ZONE',
             'ring-2 ring-sky-500 text-sky-500 hover:bg-sky-400 hover:bg-opacity-30 ring-inset': creating !== 'SAFE_ZONE'
           })}>Safe Zone</Button>
-        <Button onClick={()=>handleCreateObj('EVAC_EXIT')} icon={'bi bi-box-arrow-right'} className={classNames({
+        {/* <Button onClick={()=>handleCreateObj('EVAC_EXIT')} icon={'bi bi-box-arrow-right'} className={classNames({
           'rounded-md px-3 py-2':true,
           'bg-sky-500 text-white':creating==='EVAC_EXIT',
           'ring-2 ring-sky-500 text-sky-500 hover:bg-sky-400 hover:bg-opacity-30 ring-inset': creating !== 'EVAC_EXIT'
-        })}>Evacuation Exit</Button>
-        <Button onClick={()=>handleCreateObj('STAIRS')} icon={'bi bi-reception-4'} className={classNames({
+        })}>Evacuation Exit</Button> */}
+        {/* <Button onClick={()=>handleCreateObj('STAIRS')} icon={'bi bi-reception-4'} className={classNames({
           'rounded-md px-3 py-2':true,
           'bg-sky-500 text-white':creating==='STAIRS',
           'ring-2 ring-sky-500 text-sky-500 hover:bg-sky-400 hover:bg-opacity-30 ring-inset': creating !== 'STAIRS'
@@ -82,17 +82,17 @@ export const ToolsSection = ({setCreating,creating, map, setMap,...props}) => {
           'rounded-md px-3 py-2':true,
           'bg-sky-500 text-white':creating==='ELEVATOR',
           'ring-2 ring-sky-500 text-sky-500 hover:bg-sky-400 hover:bg-opacity-30 ring-inset': creating !== 'ELEVATOR'
-        })}>Elevator</Button>
+        })}>Elevator</Button> */}
       </div>
 
-      <span className="mt-5 mb-1 uppercase text-xs opacity-50">Damage</span>
+      {/* <span className="mt-5 mb-1 uppercase text-xs opacity-50">Damage</span>
       <div className="flex flex-row justify-start g ap-3">
         <Button onClick={()=>handleCreateObj('DAMAGE_ZONE')} icon={'bi bi-fire'} className={classNames({
           'rounded-md px-3 py-2':true,
           'bg-red-500 text-white':creating==='DAMAGE_ZONE',
           'ring-2 ring-red-500 text-red-500 hover:bg-red-400 hover:bg-opacity-30 ring-inset': creating !== 'DAMAGE_ZONE'
         })}>Damage Zone</Button>
-      </div>
+      </div> */}
 
       <div className="mt-auto flex px-3 justify-evenly">
       <Button onClick={()=>navigator('/')} icon={'bi bi-x'} className={classNames({
