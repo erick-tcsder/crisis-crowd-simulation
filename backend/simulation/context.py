@@ -176,7 +176,7 @@ class SimulationContext:
             self.routes[i], _ = clamp_route(
                 self.navmesh, a.position_point, r)
 
-            vector = np.array([r[0].x, r[1].y])-a.position
+            vector = np.array([r[0].x, r[0].y])-a.position
 
             a.direction = vector/np.linalg.norm(vector)
 

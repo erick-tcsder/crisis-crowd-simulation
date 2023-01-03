@@ -124,7 +124,7 @@ async def stream_simulation(simContext:SimulationContext):
   startTime = time.time()
   while True:
     if time.time() - startTime > 300: break
-    await simContext.update()
+    simContext.update()
     data : List[Pedestrian] = np.copy(simContext.agents)
     jsonedData = [i.toJson() for i in data]
     yield f"data: {json.dumps(jsonedData)}\n\n"

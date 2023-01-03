@@ -211,8 +211,9 @@ def a_star(navmesh: Navmesh, start: Point, end: Point) -> Tuple[List[Point], flo
             if LineString([start, route[1]]).within(navmesh.flat_polygon):
                 route = route[1:]
             # Similar process but with the last points
-            if LineString([end, route[-2]]).within(navmesh.flat_polygon):
-                route = route[:-1]
+            if len(route) != 1:
+                if LineString([end, route[-2]]).within(navmesh.flat_polygon):
+                    route = route[:-1]
 
             # So this is the route
             # Real start and end point must be added
