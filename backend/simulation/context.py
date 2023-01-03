@@ -139,7 +139,7 @@ class SimulationContext:
                 map=self.obstacle_map,
                 map_boundary=self.obstacle_map.boundary,
                 danger_zones=self.danger_zones,
-                position=np.array(x, y),
+                position=np.array([x, y]),
                 mass=m,
                 radius=rad,
                 position_point=Point(x, y)
