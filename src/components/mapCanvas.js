@@ -148,6 +148,7 @@ export const MapCanvas = ({ map, handleChangeMap, creating, handleUncreate, have
   const crtng = useRef(false)
   const coordsRef = useRef({})
   const aspectRatio = useMemo(() => {
+    if(!map) return
     return map.width / map.height;
   }, [map]);
 
@@ -263,7 +264,7 @@ export const MapCanvas = ({ map, handleChangeMap, creating, handleUncreate, have
   },[aspectRatio, props.containerRef, setDims])
   return (
     <div ref={canvasRef} className='m-auto bg-white relative'>
-      {map.items.map((obj,index) => (
+      {map && map.items.map((obj,index) => (
         <EnviromentFactory
           canvas={dims}
           map={map}
