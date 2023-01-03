@@ -234,7 +234,6 @@ def clamp_route(navmesh: Navmesh, point: Point, route: List[Point]) -> Tuple[Lis
     Reduce the route if the given point can go directly to a late point on the route.
     Returns the route and a boolean telling if it changed or not.
     """
-    if
     for pi in range(len(route)-1, -1, -1):
         p = route[pi]
         if LineString([point, p]).within(navmesh.flat_polygon):
