@@ -8,7 +8,7 @@ from ..environment.environment_objects import EnvObj
 import simulation.parameters as params
 
 
-@dataclass(kw_only=True, slots=True)
+@dataclass(kw_only=True, slots=True, eq=False)
 class Pedestrian:
     map: MultiPolygon
     map_boundary: MultiLineString

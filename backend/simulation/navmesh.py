@@ -204,16 +204,17 @@ def a_star(navmesh: Navmesh, start: Point, end: Point) -> Tuple[List[Point], flo
 
         # The destination point was poped from the heap
         if route[-1].equals(a_star_e[0]):
+            route=[start]+route+[end]
             # Patch to fix back-travel. Essentially check if the way between
             # the second point of the route in the A* and the real start point
             # is walkable, if that so then delete the first point in the route.
             # This will always shorten the path.
-            if LineString([start, route[1]]).within(navmesh.flat_polygon):
-                route = route[1:]
+            if LineString([start, route[2]]).within(navmesh.flat_polygon):
+                route = [start]+route[2:]
             # Similar process but with the last points
-            if len(route) != 1:
+            if len(route) != 2:
                 if LineString([end, route[-2]]).within(navmesh.flat_polygon):
-                    route = route[:-1]
+                    route = route[:-2]+[end]
 
             # So this is the route
             # Real start and end point must be added
@@ -233,6 +234,7 @@ def clamp_route(navmesh: Navmesh, point: Point, route: List[Point]) -> Tuple[Lis
     Reduce the route if the given point can go directly to a late point on the route.
     Returns the route and a boolean telling if it changed or not.
     """
+    if
     for pi in range(len(route)-1, -1, -1):
         p = route[pi]
         if LineString([point, p]).within(navmesh.flat_polygon):
