@@ -25,14 +25,17 @@ export const SimulationPage = ()=>{
     setLoading(true)
     SimulationService.getMaps().then(maps=>setMaps(maps.data)).finally(()=>setLoading(false))
   },[])
+  const onSchange = useCallback((newState)=>{
+    console.log('asd')
+    setPositions(newState)
+  },[])
+  const onSEnd = useCallback(()=>{
+    Swal.fire('Simulation Ende','The simulation has ended','info')
+  },[]) 
   useEffect(()=>{
     getMaps()
   },[getMaps])
-  const sa = useStreamingAssets(loading,maps,sProps,(newState)=>{
-    setPositions(newState)
-  },()=>{
-    Swal.fire('Simulation Ended','The simulation has ended','info')
-  })
+  useStreamingAssets(loading,maps,sProps,onSchange,onSEnd)
   return (
     <div className='fixed inset-x-3 top-16 bottom-3 grid-cols-4 grid gap-9 overflow-auto p-5'>
       <PageTitle title={'Simulation Started'}/>
