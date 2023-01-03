@@ -98,6 +98,7 @@ def simulationStart(data:SimulationStart):
   end = (data.explosionLeft + data.explosionDeathRadius/2,data.explosionTop + data.explosionDeathRadius/2)
   damageZone = DamageZone([start,end],0.9)
   building.objects.append(damageZone)
+  global simulationContext
   simulationContext = SimulationContext(building)
   simulationContext.setup_navmesh()
   simulationContext.setup_pdestrians(data.agentCount)
@@ -116,14 +117,14 @@ def simulationStop():
   simulationStatus = 'STOPPED'
   return 'OK'
 
-async def stream_simulation():
+async def stream_simulation(simContext:SimulationContext):
   if simulationStatus != 'RUNNING':
     yield f"data: {json.dumps('end')}\n\n"
   startTime = time.time()
   while True:
     if time.time() - startTime > 300: break
-    await simulationContext.update()
-    data : List[Pedestrian] = np.copy(simulationContext.agents)
+    await simContext.update()
+    data : List[Pedestrian] = np.copy(simContext.agents)
     jsonedData = [i.toJson() for i in data]
     yield f"data: {json.dumps(jsonedData)}\n\n"
   yield f"data: {json.dumps('end')}\n\n"
@@ -139,8 +140,9 @@ async def stream_vulnerabilities():
 
 @app.get("/simulation/stream")
 async def stream():
-  return StreamingResponse(stream_simulation(), media_type="text/event-stream")
+  global simulationContext
+  return StreamingResponse(stream_simulation(simulationContext), media_type="text/event-stream")
 
 @app.get("/vulnerabilities/stream")
-async def stream():
+def stream():
   return StreamingResponse(stream_vulnerabilities(), media_type="text/event-stream")

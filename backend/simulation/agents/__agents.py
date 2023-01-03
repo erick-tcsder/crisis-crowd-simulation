@@ -122,7 +122,7 @@ class Pedestrian:
     # Function to update the pedestrian speed.
     def update_velocity(self,
                         pedestrians: List[Self]):
-        e0 /= norm(e0)
+        # e0 /= norm(e0)
         # We calculate the force of repulsion of this pedestrian with the others.
         fij = self.repulsion_force(pedestrians)
         # We calculate the repulsive force of this pedestrian with the walls.
