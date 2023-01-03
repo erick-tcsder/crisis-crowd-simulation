@@ -141,7 +141,6 @@ async def stream_vulnerabilities():
 
 @app.get("/simulation/stream")
 async def stream():
-  global simulationContext
   return StreamingResponse(stream_simulation(simulationContext), media_type="text/event-stream")
 
 @app.get("/vulnerabilities/stream")
