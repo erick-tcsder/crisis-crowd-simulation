@@ -48,7 +48,7 @@ class Pedestrian:
         p = self.position    # pedestrian position
 
         vp = list(shortest_line(geo_boundary, self.position_point).coords)
-        vp = [np.array(Point(p).xy) for p in vp]
+        vp = [np.array([Point(p).x, Point(p).y]) for p in vp]
 
         r = np.fromiter((norm(x) for x in (vp[1]-vp[0])), dtype=float)
 
