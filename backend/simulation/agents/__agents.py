@@ -44,7 +44,7 @@ class Pedestrian:
         if geo is None:
             geo = self.map
         if geo_boundary is None:
-            geo = self.map_boundary
+            geo_boundary = self.map_boundary
         p = self.position    # pedestrian position
 
         vp = list(shortest_line(geo_boundary, self.position_point).coords)

@@ -98,11 +98,12 @@ def simulationStart(data:SimulationStart):
   end = (data.explosionLeft + data.explosionDeathRadius/2,data.explosionTop + data.explosionDeathRadius/2)
   damageZone = DamageZone([start,end],0.9)
   building.objects.append(damageZone)
+  a = 123
   global simulationContext
   simulationContext = SimulationContext(building)
   simulationContext.setup_navmesh()
-  simulationContext.setup_pdestrians(data.agentCount)
-  simulationContext.setup_routes()
+  simulationContext.setup_pdestrians(data.agentCount, 123)
+  simulationContext.setup_routes(123)
   return {
     'status': simulationStatus
   }
