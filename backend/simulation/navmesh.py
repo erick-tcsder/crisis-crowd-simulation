@@ -238,4 +238,4 @@ def clamp_route(navmesh: Navmesh, point: Point, route: List[Point]) -> Tuple[Lis
         p = route[pi]
         if LineString([point, p]).within(navmesh.flat_polygon):
             return (route[pi:], True)
-        return (route, False)
+    return (route, False)

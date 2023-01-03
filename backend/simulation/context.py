@@ -173,8 +173,9 @@ class SimulationContext:
                 continue
 
             # Update direction according to route and position
-            self.routes[i], _ = clamp_route(
+            r, _ = clamp_route(
                 self.navmesh, a.position_point, r)
+            self.routes[i] = r
 
             vector = np.array([r[0].x, r[0].y])-a.position
 
