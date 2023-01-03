@@ -92,6 +92,7 @@ def getSimulationStatus():
 
 @app.post('/simulation/start')
 def simulationStart(data:SimulationStart):
+  global simulationStatus
   simulationStatus = 'RUNNING'
   building = simulationBuilding[0]
   start = (data.explosionLeft - data.explosionDeathRadius/2,data.explosionTop - data.explosionDeathRadius/2)
@@ -118,17 +119,15 @@ def simulationStop():
   simulationStatus = 'STOPPED'
   return 'OK'
 
-async def stream_simulation(simContext:SimulationContext):
+async def stream_simulation():
   if simulationStatus != 'RUNNING':
     yield f"data: {json.dumps('end')}\n\n"
-  startTime = time.time()
   while True:
-    if time.time() - startTime > 300: break
-    simContext.update()
-    data : List[Pedestrian] = np.copy(simContext.agents)
-    jsonedData = [i.toJson() for i in data]
+    simulationContext.update()
+    data : List[Pedestrian] = np.copy(simulationContext.agents)
+    jsonedData = {'ped':[i.toJson() for i in data]}
+    await asyncio.sleep(0.5)
     yield f"data: {json.dumps(jsonedData)}\n\n"
-  yield f"data: {json.dumps('end')}\n\n"
 
 async def stream_vulnerabilities():
   i = 0
@@ -136,13 +135,13 @@ async def stream_vulnerabilities():
     if i == 10: break
     yield f"data: {json.dumps({'bar': i})}\n\n"
     i += 1
-    await asyncio.sleep(0.5)
+    await asyncio.sleep(0.25)
   yield f"data: {json.dumps('end')}\n\n"
 
 @app.get("/simulation/stream")
-async def stream():
-  return StreamingResponse(stream_simulation(simulationContext), media_type="text/event-stream")
+async def streamSim():
+  return StreamingResponse(stream_simulation(), media_type="text/event-stream")
 
 @app.get("/vulnerabilities/stream")
-def stream():
+def streamVul():
   return StreamingResponse(stream_vulnerabilities(), media_type="text/event-stream")

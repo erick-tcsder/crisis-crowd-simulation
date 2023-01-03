@@ -1,4 +1,4 @@
-import { useRef, useState,useCallback, useEffect} from "react"
+import { useRef, useState,useCallback, useEffect, useMemo} from "react"
 import { PageTitle } from "../components/pageTitle"
 import { useStreamingAssets } from "../hooks/simulationStream"
 import { SimulationService } from "../hooks/simulationservice"
@@ -12,6 +12,15 @@ export const SimulationPage = ()=>{
   const [maps,setMaps] = useState([])
   const [loading,setLoading] = useState(false)
   const [positions,setPositions] = useState([])
+  const sProps = useMemo(()=>{
+    return {
+      mapBomb: params.get('mb'),
+      bombTop: parseFloat(params.get('bt')),
+      bombLeft: parseFloat(params.get('bl')),
+      bombRadius: parseFloat(params.get('br')),
+      peopleCount: parseInt(params.get('pc'))
+    }
+  },[])
   const getMaps = useCallback(()=>{
     setLoading(true)
     SimulationService.getMaps().then(maps=>setMaps(maps.data)).finally(()=>setLoading(false))
@@ -19,15 +28,8 @@ export const SimulationPage = ()=>{
   useEffect(()=>{
     getMaps()
   },[getMaps])
-  const sa = useStreamingAssets(loading,maps,{
-    mapBomb: params.get('mb'),
-    bombTop: parseFloat(params.get('bt')),
-    bombLeft: parseFloat(params.get('bl')),
-    bombRadius: parseFloat(params.get('br')),
-    peopleCount: parseInt(params.get('pc'))
-  },(newState)=>{
-    console.log(newState)
-    // setPositions(newState)
+  const sa = useStreamingAssets(loading,maps,sProps,(newState)=>{
+    setPositions(newState)
   },()=>{
     Swal.fire('Simulation Ended','The simulation has ended','info')
   })

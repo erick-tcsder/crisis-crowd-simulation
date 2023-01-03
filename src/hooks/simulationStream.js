@@ -5,7 +5,7 @@ export const useStreamingAssets = (loading,maps,simulationProps,onNewState,onStr
   const positions = useRef([])
   useEffect(() => {
     if(!loading && maps.length > 0 && simulationProps && simulationProps?.peopleCount){
-      let fileSaver = streamsaver.createWriteStream(`${filename}.json`)
+      let fileSaver = streamsaver.createWriteStream(`${filename}v2.json`)
       let writer = fileSaver.getWriter()
       let wroted = false
       const encode = TextEncoder.prototype.encode.bind(new TextEncoder())
@@ -20,8 +20,8 @@ export const useStreamingAssets = (loading,maps,simulationProps,onNewState,onStr
           return
         }
         positions.current.push(JSON.parse(event.data))
-        onNewState?.(JSON.parse(event.data))
-        writer.write(encode(`${wroted ? ',\n' : ''}${event.data}`))
+        onNewState?.(JSON.parse(event.data).ped)
+        writer.write(encode(`${wroted ? ',\n' : ''}${JSON.stringify(JSON.parse(event.data).ped)}`))
         wroted = true
       };
       eventSource.onerror = (err)=>{
@@ -36,7 +36,7 @@ export const useStreamingAssets = (loading,maps,simulationProps,onNewState,onStr
         eventSource.close()
       } 
     }
-  }, [filename, loading, maps, simulationProps]);
+  }, [loading, simulationProps,maps]);
 
   return {
     positions: positions.current
