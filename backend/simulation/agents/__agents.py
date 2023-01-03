@@ -8,7 +8,7 @@ from ..environment.environment_objects import EnvObj
 import simulation.parameters as params
 
 
-@dataclass(kw_only=True, slots=True, eq=False)
+@dataclass(kw_only=True, slots=True, eq=False, repr=False)
 class Pedestrian:
     map: MultiPolygon
     map_boundary: MultiLineString
@@ -20,6 +20,9 @@ class Pedestrian:
     direction: np.ndarray = np.array([.0, .0])
 
     velocity: np.ndarray = np.array([.0, .0])
+
+    def __repr__(self) -> str:
+        return f'Pedestrian [{self.position[0]:.2f} x {self.position[1]:.2f}]'
 
     def repulsion_force(self, pedestrians: List[Self]):
         fij = np.zeros_like(self.position)
