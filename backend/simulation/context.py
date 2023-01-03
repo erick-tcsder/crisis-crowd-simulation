@@ -129,7 +129,9 @@ class SimulationContext:
 
         # Assumed ages between 18 and 65. Distribution and parameters
         # from DOI:10.1111/j.1539-6924.2006.00856.x
-        ms = rs.lognormal(79.96, 20.73, pedestrians)
+        median = np.log(79.96**2/np.sqrt(79.96**2+20.73**2))
+        std = np.sqrt(np.log(1+(20.73**2)/(79.96**2)))
+        ms = rs.lognormal(median, std, pedestrians)
 
         # Radius (distance from shoulder to shoulder) has uniform distribution
         rads = rs.uniform(.25, .35, pedestrians)

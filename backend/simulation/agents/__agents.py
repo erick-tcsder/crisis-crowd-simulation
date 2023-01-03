@@ -48,11 +48,14 @@ class Pedestrian:
         p = self.position    # pedestrian position
 
         vp = list(shortest_line(geo_boundary, self.position_point).coords)
-        vp = [np.array(self.position_point.xy) for p in vp]
+        vp = [np.array(Point(p).xy) for p in vp]
 
         r = np.fromiter((norm(x) for x in (vp[1]-vp[0])), dtype=float)
+
         if self.position_point.within(geo):
             return r*-1
+
+        return r
 
     # Function to calculate the repulsion force with respect to the walls.
     def wall_force(self) -> float:
