@@ -19,7 +19,7 @@ class Pedestrian:
     radius: float = params.PEDESTRIAN_RADIUS
     direction: np.ndarray = np.array([.0, .0])
 
-    velocity = np.array([.0, .0])
+    velocity: np.ndarray = np.array([.0, .0])
 
     def repulsion_force(self, pedestrians: List[Self]):
         fij = np.zeros_like(self.position)
