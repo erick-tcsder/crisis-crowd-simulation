@@ -29,8 +29,7 @@ class Pedestrian:
             if ped == self:
                 continue
 
-            line = [ped.position, self.position]
-            dif = np.fromiter((norm(x) for x in (line[1]-line[0])), dtype=float)
+            dif = self.position-ped.position
 
             j = self.radius + ped.radius
 
