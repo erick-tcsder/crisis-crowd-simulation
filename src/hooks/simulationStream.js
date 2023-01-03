@@ -19,7 +19,7 @@ export const useStreamingAssets = (loading,maps,simulationProps,onNewState,onStr
           return
         }
         positions.current.push(JSON.parse(event.data))
-        onNewState?.(JSON.parse(event.data).ped)
+        onNewState?.(JSON.parse(event.data))
         writer.write(encode(`${wroted ? ',\n' : ''}${JSON.stringify(JSON.parse(event.data).ped)}`))
         wroted = true
       };

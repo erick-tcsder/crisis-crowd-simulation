@@ -123,15 +123,17 @@ async def stream_simulation():
   if simulationStatus != 'RUNNING':
     yield f"data: {json.dumps('end')}\n\n"
   ticks = 0
+  cycles = 0
   tickInterval = 0.5
   initTime = time.time()
   while True:
+    cycles += 1
     simulationContext.update()
     if time.time() - initTime > tickInterval*ticks:
       await asyncio.sleep(0.1)
       ticks += 1
       data : List[Pedestrian] = np.copy(simulationContext.agents)
-      jsonedData = {'ped':[i.toJson() for i in data]}
+      jsonedData = {'ped':[i.toJson() for i in data],'time': cycles*0.125}
       yield f"data: {json.dumps(jsonedData)}\n\n"
   yield f"data: {json.dumps('end')}\n\n"
 
