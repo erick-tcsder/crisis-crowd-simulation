@@ -23,7 +23,7 @@ class Pedestrian:
     velocity: np.ndarray = np.array([.0, .0])
 
     def __repr__(self) -> str:
-        return f'Pedestrian [{self.position[0]:.2f} x {self.position[1]:.2f}]'
+        return f'Pedestrian {self.id} [{self.position[0]:.2f} x {self.position[1]:.2f}]'
 
     def repulsion_force(self, pedestrians: List[Self]):
         fij = np.zeros_like(self.position)
