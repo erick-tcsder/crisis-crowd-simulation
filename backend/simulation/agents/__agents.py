@@ -98,12 +98,11 @@ class Pedestrian:
     def calculate_forces(self, dif: np.ndarray, j: float,
                          a: float = params.A_CONSTANT,
                          b: float = params.B_CONSTANT) -> float:
-        diW = norm(dif)
-        r = self.radius                            # pedestrian radius
+        diW = norm(dif)                         # pedestrian radius
         niW = dif / diW                            # normalized difference vector
 
         f_repulsive = a * np.exp(
-            (r - diW) / b) * niW
+            (j - diW) / b) * niW
 
         f_total = f_repulsive
 
@@ -114,7 +113,7 @@ class Pedestrian:
             # dv = np.dot(self.v, tiW)           # tangential velocity
 
             # Body force that the pedestrian exerts on the wall.
-            f_body = (params.K1_CONSTANT * (r - diW)) * niW
+            f_body = (params.K1_CONSTANT * (j - diW)) * niW
 
             # Friction force between pedestrian and wall.
             # f_friction = (self.K * (r - diW) * dv) * tiW
@@ -151,6 +150,8 @@ class Pedestrian:
     def update_position(self):
         # Updates the position with respect to speed and elapsed time (p = v * t)
         self.position += self.velocity * params.TIME_STEP
+        if self.position[0] >= self.map.bounds[2] or self.position[1] >= self.map.bounds[3]:
+            pass
         self.position_point = Point(*self.position)
 
     def toJson(self):

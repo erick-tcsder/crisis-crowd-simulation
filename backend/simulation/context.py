@@ -135,7 +135,8 @@ class SimulationContext:
 
         # Radius (distance from shoulder to shoulder) has uniform distribution
         rads = rs.uniform(.25, .35, pedestrians)
-        r = np.random.randint(10000,size=pedestrians)
+
+        r = rs.randint(10000, size=pedestrians)
 
         self.agents = [
             Pedestrian(
