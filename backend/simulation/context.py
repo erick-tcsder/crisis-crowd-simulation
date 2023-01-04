@@ -135,6 +135,7 @@ class SimulationContext:
 
         # Radius (distance from shoulder to shoulder) has uniform distribution
         rads = rs.uniform(.25, .35, pedestrians)
+        r = np.random.randint(10000,size=pedestrians)
 
         self.agents = [
             Pedestrian(
@@ -144,8 +145,9 @@ class SimulationContext:
                 position=np.array([x, y]),
                 mass=m,
                 radius=rad,
-                position_point=Point(x, y)
-            ) for x, y, m, rad in zip(xs, ys, ms, rads)
+                position_point=Point(x, y),
+                id=f'{i}'
+            ) for x, y, m, rad, i in zip(xs, ys, ms, rads, r)
         ]
 
     def setup_routes(self, seed: int | None = None):

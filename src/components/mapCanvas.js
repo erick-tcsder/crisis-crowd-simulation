@@ -275,7 +275,7 @@ export const MapCanvas = ({ map, handleChangeMap, creating, handleUncreate, have
       ))}
       {havePedestrians ? pedestrianPositions.map((p,i)=>{
         return (
-          <Pedestrian canvas={dims} left={p.left} map={map} top={p.top} width={p.width} key={i} status={p.status}/>
+          <Pedestrian canvas={dims} left={p.left} id={p.id} map={map} top={p.top} width={p.width} key={i} status={p.status}/>
         )
       }) : <></>}
       <div ref={creatingShape}/>

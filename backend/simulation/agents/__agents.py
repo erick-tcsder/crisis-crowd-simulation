@@ -18,6 +18,7 @@ class Pedestrian:
     mass: float = params.PEDESTRIAN_MASS
     radius: float = params.PEDESTRIAN_RADIUS
     direction: np.ndarray = np.array([.0, .0])
+    id: int
 
     velocity: np.ndarray = np.array([.0, .0])
 
@@ -154,6 +155,7 @@ class Pedestrian:
 
     def toJson(self):
         return {
+            'id': self.id,
             'top': self.position[1],
             'left': self.position[0],
             'width': self.radius*2,
