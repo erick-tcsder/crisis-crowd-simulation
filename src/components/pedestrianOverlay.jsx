@@ -9,7 +9,8 @@ export const Pedestrian = ({ id,top, left, width, status='ALIVE',map,canvas})=>{
   useEffect(()=>{
     if(!ref.current || !top || !left || !width || !map || !canvas) return
     console.log(map,canvas,left,top)
-    const maxWidth = Utils.getMToPx(map,canvas,width)
+    if(top > map.height || left > map.width) console.log('aqui')
+    const maxWidth = Math.max(Utils.getMToPx(map,canvas,width),10)
     ref.current.style.top = `${Utils.getMToPx(map,canvas,top - (width/2))}px`
     ref.current.style.left = `${Utils.getMToPx(map,canvas,left - (width/2))}px` 
     ref.current.style.width = `${maxWidth}px`

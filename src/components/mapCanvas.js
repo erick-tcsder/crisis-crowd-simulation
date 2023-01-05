@@ -263,7 +263,7 @@ export const MapCanvas = ({ map, handleChangeMap, creating, handleUncreate, have
     canvasRef.current.style.display = 'flex'
   },[aspectRatio, props.containerRef, setDims])
   return (
-    <div ref={canvasRef} className='m-auto bg-white relative'>
+    <div ref={canvasRef} className='m-auto bg-white relative overflow-hidden'>
       {map && map.items.map((obj,index) => (
         <EnviromentFactory
           canvas={dims}

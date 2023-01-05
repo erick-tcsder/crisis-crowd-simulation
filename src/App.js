@@ -13,6 +13,7 @@ function App() {
         <div className="flex flex-row gap-x-4">
           <Button onClick={async()=>{
             try{
+              await SimulationService.stopSimulation()
               navigator('/')
             }catch(e){
               console.error(e)
