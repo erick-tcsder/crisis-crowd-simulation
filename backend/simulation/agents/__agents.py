@@ -6,6 +6,9 @@ from shapely import Point, MultiPolygon, LineString, shortest_line, prepare, Mul
 from numpy.linalg import norm
 from ..environment.environment_objects import EnvObj
 import simulation.parameters as params
+from enum import Enum
+
+Status = Enum('Status', 'ALIVE DEAD SAFE')
 
 
 @dataclass(kw_only=True, slots=True, eq=False, repr=False)
@@ -21,6 +24,7 @@ class Pedestrian:
     id: int
 
     velocity: np.ndarray = np.array([.0, .0])
+    status: Status = Status.ALIVE
 
     def __repr__(self) -> str:
         return f'Pedestrian {self.id} [{self.position[0]:.2f} x {self.position[1]:.2f}]'
@@ -30,7 +34,7 @@ class Pedestrian:
 
         # Add the force of interactions with the other pedestrians.
         for ped in pedestrians:
-            if ped == self:
+            if ped == self or ped.status != ped.status.ALIVE:
                 continue
 
             dif = self.position-ped.position
@@ -43,7 +47,7 @@ class Pedestrian:
         return fij
 
     # Calculates the distance of a pedestrian to a wall.
-    def wall_difference(self, geo=None, geo_boundary=None):
+    def wall_difference(self, geo=None, geo_boundary=None, inverse=False):
         if geo is None:
             geo = self.map
         if geo_boundary is None:
@@ -53,9 +57,9 @@ class Pedestrian:
         vp = list(shortest_line(geo_boundary, self.position_point).coords)
         vp = [np.array([Point(p).x, Point(p).y]) for p in vp]
 
-        r = np.fromiter((norm(x) for x in (vp[1]-vp[0])), dtype=float)
+        r = vp[1]-vp[0]
 
-        if self.position_point.within(geo):
+        if ((not self.position_point.within(geo)) ^ inverse):
             return r*-1
 
         return r
@@ -84,7 +88,7 @@ class Pedestrian:
             geo = Polygon(zone.getRoundingBox())
             # Add the force of interactions with the zone.
             dif = self.wall_difference(
-                geo, geo.boundary
+                geo, geo.boundary, True
             )  # difference vector
 
             j = self.radius
@@ -127,6 +131,9 @@ class Pedestrian:
     # Function to update the pedestrian speed.
     def update_velocity(self,
                         pedestrians: List[Self]):
+        if self.status != Status.ALIVE:
+            self.velocity = self.direction = np.array([.0, .0])
+            return
         # e0 /= norm(e0)
         # We calculate the force of repulsion of this pedestrian with the others.
         fij = self.repulsion_force(pedestrians)
@@ -160,5 +167,5 @@ class Pedestrian:
             'top': self.position[1],
             'left': self.position[0],
             'width': self.radius*2,
-            'status': 'ALIVE'
+            'status': self.status.name
         }

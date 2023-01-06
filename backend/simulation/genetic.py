@@ -19,12 +19,12 @@ class GeneticPoints:
     min_mutation_distance: float = .01
     max_mutation_distance: float = .5
 
-    mate_maximum: int = 10
+    mate_maximum: int = 0
     mate_border: int = int(ceil((sqrt(8*mate_maximum+1)-1)/2))
 
-    mutation_maximum: int = 33
+    mutation_maximum: int = 39
 
-    inmutate_maximum: int = 4
+    inmutate_maximum: int = 10
 
     minimize: bool = False
 

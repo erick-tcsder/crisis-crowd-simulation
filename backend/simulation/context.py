@@ -6,9 +6,9 @@ from shapely import MultiPolygon, Point, Polygon, prepare
 
 from .parameters import *
 
-from .agents import Pedestrian
+from .agents import Pedestrian, Status
 from .environment.blueprint import Blueprint
-from .environment.environment_objects import Door, EnvObj
+from .environment.environment_objects import Door, EnvObj, DamageZone
 from .navmesh import Navmesh, build_navmesh, a_star, clamp_route
 
 
@@ -20,11 +20,17 @@ class SimulationContext:
     safe_zone_map: MultiPolygon  # Map is what is safe zone
     danger_zone_map: MultiPolygon  # Map is what is danger zone
 
-    danger_zones: List[Polygon]
+    danger_zones: List[DamageZone]
     safe_zones: List[Polygon]
 
     navmesh: Navmesh
+
+    # Matrix with the zones in order of priority for every pedestrian (rows)
+    zones_to_go: np.ndarray
+    zone_choosed: np.ndarray  # Index of which zone is searching right now
+
     routes: List[List[Point]] = []
+    ticks: int = 0
 
     def __init__(self, map: Blueprint) -> None:
         self.map_blueprint = map
@@ -82,9 +88,10 @@ class SimulationContext:
         self.obstacle_map = self.obstacle_map.intersection(base)
 
         # Put some safety distance
-        self.obstacle_map = self.obstacle_map.buffer(-.01, cap_style='flat', join_style='bevel')
-        if isinstance(self.obstacle_map,Polygon):
-            self.obstacle_map=MultiPolygon([self.obstacle_map])
+        self.obstacle_map = self.obstacle_map.buffer(
+            -.01, cap_style='flat', join_style='bevel')
+        if isinstance(self.obstacle_map, Polygon):
+            self.obstacle_map = MultiPolygon([self.obstacle_map])
 
         self.safe_zone_map: MultiPolygon = reduce(
             lambda x, y: x.union(y),  # union
@@ -156,18 +163,57 @@ class SimulationContext:
 
         rs = np.random.RandomState(seed)
 
-        zone_to_go = rs.randint(0, len(self.safe_zones), len(self.agents))
-        dests = [self.safe_zones[i].centroid for i in zone_to_go]
+        zs = np.concatenate(
+            [rs.permutation(len(self.safe_zones))]
+            for _ in range(len(self.agents)))
+        zs = zs.reshape((len(self.agents), -1))
+        self.zones_to_go = zs
+        self.zone_choosed = np.repeat(0, len(self.agents))
 
-        for i, p in enumerate(self.agents):
+        dests = [zone.centroid for zone in self.safe_zones]
+
+        i = 0
+        while i < len(self.agents[i]):
+            p = self.agents[i]
+            choosed_index = self.zone_choosed[i]
+            if choosed_index > len(self.safe_zones):
+                p.status = Status.DEAD
+                continue
+
             r, l = a_star(self.navmesh, p.position_point, dests[i])
 
             if l == -1:
-                self.routes.append([])
+                self.zone_choosed[i] += 1
+                i -= 1
+                continue
 
             self.routes.append(r[1:])
+            i += 1
 
     def update(self):
+        self.update_routes()
+        for a in self.agents:
+            # Update model data
+            a.update_velocity(self.agents)
+            a.update_position()
+
+            self.ticks += 1
+
+        self.update_safes()
+        self.update_danger()
+
+    def update_safes(self):
+        for i in range(len(self.agents)):
+            if self.agents[i].status != Status.SAFE and\
+                    self.agents[i].position_point.within(self.safe_zone_map) and\
+                    np.random.rand() < .05:
+                self.agents[i].status = Status.SAFE
+
+    def update_danger(self):
+        for d in self.danger_zones:
+            d.damageFactor = 1e2/self.time
+
+    def update_routes(self):
         for i in range(len(self.agents)):
             a = self.agents[i]
             r = self.routes[i]
@@ -176,14 +222,21 @@ class SimulationContext:
                 continue
 
             # Update direction according to route and position
-            r, _ = clamp_route(
+            r, good = clamp_route(
                 self.navmesh, a.position_point, r)
+
+            if not good:
+                r, c = a_star(self.navmesh, a.position_point, r[-1])
+
             self.routes[i] = r
+
+            if c == -1:
+                a.status = Status.DEAD
 
             vector = np.array([r[0].x, r[0].y])-a.position
 
             a.direction = vector/np.linalg.norm(vector)
 
-            # Update model data
-            a.update_velocity(self.agents)
-            a.update_position()
+    @property
+    def time(self) -> float:
+        return self.ticks*TIME_STEP
