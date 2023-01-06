@@ -217,8 +217,7 @@ def a_star(navmesh: Navmesh, start: Point, end: Point) -> Tuple[List[Point], flo
                     route = route[:-2]+[end]
 
             # So this is the route
-            # Real start and end point must be added
-            full_route = [start]+route+[end]
+            full_route = route
             return (full_route, w[0])
 
         neighbors = neigh(route[-1])

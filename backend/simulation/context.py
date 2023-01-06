@@ -164,8 +164,8 @@ class SimulationContext:
         rs = np.random.RandomState(seed)
 
         zs = np.concatenate(
-            [rs.permutation(len(self.safe_zones))]
-            for _ in range(len(self.agents)))
+            [rs.permutation(len(self.safe_zones))
+             for _ in range(len(self.agents))])
         zs = zs.reshape((len(self.agents), -1))
         self.zones_to_go = zs
         self.zone_choosed = np.repeat(0, len(self.agents))
@@ -173,14 +173,16 @@ class SimulationContext:
         dests = [zone.centroid for zone in self.safe_zones]
 
         i = 0
-        while i < len(self.agents[i]):
+        while i < len(self.agents):
             p = self.agents[i]
             choosed_index = self.zone_choosed[i]
             if choosed_index > len(self.safe_zones):
                 p.status = Status.DEAD
                 continue
 
-            r, l = a_star(self.navmesh, p.position_point, dests[i])
+            r, l = a_star(self.navmesh, p.position_point, dests[
+                self.zones_to_go[i, choosed_index]
+            ])
 
             if l == -1:
                 self.zone_choosed[i] += 1
@@ -197,8 +199,7 @@ class SimulationContext:
             a.update_velocity(self.agents)
             a.update_position()
 
-            self.ticks += 1
-
+        self.ticks += 1
         self.update_safes()
         self.update_danger()
         return all((a.status != Status.ALIVE for a in self.agents))
@@ -212,7 +213,7 @@ class SimulationContext:
 
     def update_danger(self):
         for d in self.danger_zones:
-            d.damageFactor = 1e2/self.time
+            d.damageFactor = 1/(self.time+1)
 
     def update_routes(self):
         for i in range(len(self.agents)):
@@ -228,11 +229,11 @@ class SimulationContext:
 
             if not good:
                 r, c = a_star(self.navmesh, a.position_point, r[-1])
+                r = r[1:]
+                self.routes[i] = r
 
-            self.routes[i] = r
-
-            if c == -1:
-                a.status = Status.DEAD
+                if c == -1:
+                    a.status = Status.DEAD
 
             vector = np.array([r[0].x, r[0].y])-a.position
 
