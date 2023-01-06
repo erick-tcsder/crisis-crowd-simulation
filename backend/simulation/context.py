@@ -201,6 +201,7 @@ class SimulationContext:
 
         self.update_safes()
         self.update_danger()
+        return all((a.status != Status.ALIVE for a in self.agents))
 
     def update_safes(self):
         for i in range(len(self.agents)):
