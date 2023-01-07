@@ -64,7 +64,7 @@ def vulnerability_data(map: Blueprint, damage_radius: float):
         map.objects = [obj for obj in map.objects if not isDamage(obj)]
 
         # Return the median of the distance
-        return d.mean()
+        return d.mean()/sqrt(map.width**2+map.height**2)
 
     gen_engine = GeneticPoints(
         fit_func=test_position,
