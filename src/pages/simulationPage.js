@@ -27,7 +27,6 @@ export const SimulationPage = ()=>{
     SimulationService.getMaps().then(maps=>setMaps(maps.data)).finally(()=>setLoading(false))
   },[])
   const onSchange = useCallback((newState)=>{
-    console.log(positions)
     setPositions(newState.ped)
     setTime(newState.time)
   },[])
