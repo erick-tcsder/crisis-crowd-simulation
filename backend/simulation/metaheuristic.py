@@ -3,7 +3,7 @@ from typing import List
 import numpy as np
 from shapely import LineString, Point, distance, prepare
 
-import parameters as params
+import simulation.parameters as params
 from context import SimulationContext
 from environment.blueprint import Blueprint
 from environment.environment_objects import DamageZone
