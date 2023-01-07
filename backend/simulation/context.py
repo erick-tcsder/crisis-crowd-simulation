@@ -186,7 +186,6 @@ class SimulationContext:
 
             if l == -1:
                 self.zone_choosed[i] += 1
-                i -= 1
                 continue
 
             self.routes.append(r[1:])

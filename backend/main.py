@@ -169,7 +169,7 @@ async def stream_vulnerabilities():
                 vuln_radius))
   initTime = time.time()
   geneticIterations = 0
-  maxGeneticIterations = 100
+  maxGeneticIterations = 2
   maxTime = 1200 #20 mins max
   bestResults = []
   while True:
