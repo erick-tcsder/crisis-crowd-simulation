@@ -170,7 +170,7 @@ async def stream_vulnerabilities():
   print("started")
   initTime = time.time()
   geneticIterations = 0
-  maxGeneticIterations = 10
+  maxGeneticIterations = 20
   maxTime = 1200 #20 mins max
   bestResults = []
   while True:
@@ -187,7 +187,6 @@ async def stream_vulnerabilities():
     yield f"data: {json.dumps(ResultEvent(f'Best Result after {geneticIterations} genetic Iterations 🧬',{'bestPlaces': [{'top':c[1],'left':c[0]} for c in bestResults]}).toJson())}\n\n"
     await asyncio.sleep(0.1)
     yield f"data: {json.dumps(LogEvent(f'Genetic Iteration {geneticIterations} ENDED 🎉🎉🎉').toJson())}\n\n"
-    geneticIterations+=1
     #...
   #Send ResultEvent + EndEvent
   await asyncio.sleep(0.1)

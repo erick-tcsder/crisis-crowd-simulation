@@ -178,6 +178,8 @@ class SimulationContext:
             choosed_index = self.zone_choosed[i]
             if choosed_index >= len(self.safe_zones):
                 p.status = Status.DEAD
+                i += 1
+                self.routes.append([])
                 continue
 
             r, l = a_star(self.navmesh, p.position_point, dests[
