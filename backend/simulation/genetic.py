@@ -42,21 +42,14 @@ class GeneticPoints:
         self.calculate_fitness(candidates)
         xs = np.fromiter((c.value.x for c in candidates), dtype=float)
         ys = np.fromiter((c.value.y for c in candidates), dtype=float)
-        fs = np.fromiter((c.fitness for c in candidates), dtype=float)
 
-        m_distance = np.interp(
-            fs,
-            (self.__min_fitness_total, self.__max_fitness_total),
-            (self.min_mutation_distance if self.minimize else self.max_mutation_distance,
-             self.max_mutation_distance if self.minimize else self.min_mutation_distance)
-        )
-
+        m_distance = rs.uniform(self.min_mutation_distance,self.max_mutation_distance,len(candidates))
         count = len(xs)
 
         ra = rs.random_sample(count)*(2*pi)
 
-        x_offs = np.abs(np.sin(ra))*self.max_mutation_distance
-        y_offs = np.abs(np.cos(ra))*self.max_mutation_distance
+        x_offs = np.sin(ra)*m_distance
+        y_offs = np.cos(ra)*m_distance
 
         moved_xs = xs+x_offs
         moved_ys = ys+y_offs
@@ -108,7 +101,7 @@ class GeneticPoints:
                                                                    List[Candidate]]:
         self.calculate_fitness(candidates)
 
-        candidates.sort(reverse=not (self.minimize))
+        candidates.sort(reverse=not (self.minimize), key=lambda x: x.fitness)
 
         pairs: List[Tuple[int, int]] = []
 

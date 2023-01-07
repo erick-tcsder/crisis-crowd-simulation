@@ -24,7 +24,7 @@ def vulnerability_data(map: Blueprint, damage_radius: float):
         # Points to create the sphere
         p1 = np.array([p.x*map.width, p.y*map.height])  # center
         # point at distance equals to the radius from the center
-        p2 = damage_radius*(np.array([(map.width/2), (map.height/2)])-p1)
+        p2 = p1+np.array([.0, damage_radius])
 
         # Put the bomb
         map.objects.append(DamageZone(
@@ -64,7 +64,7 @@ def vulnerability_data(map: Blueprint, damage_radius: float):
         map.objects = [obj for obj in map.objects if not isDamage(obj)]
 
         # Return the median of the distance
-        return d.mean()
+        return d.mean()/sqrt(map.width**2+map.height**2)
 
     gen_engine = GeneticPoints(
         fit_func=test_position,
@@ -77,6 +77,6 @@ def vulnerability_data(map: Blueprint, damage_radius: float):
 
     new_gen = gen_engine.next_gen(first_gen)
     while True:
-        limit = min(len(new_gen), 10)
+        limit = min(len(new_gen), 3)
         yield (gen_engine.generation, [(c.value.x*map.width, c.value.y*map.height) for c in new_gen[:limit]])
-        new_gen = gen_engine.next_gen(first_gen)
+        new_gen = gen_engine.next_gen()

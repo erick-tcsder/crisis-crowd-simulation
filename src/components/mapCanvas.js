@@ -330,6 +330,8 @@ export const MapCanvas = ({
           const Bomb = envMapper['DAMAGE_ZONE']
           return <Bomb
             {...v}
+            map={map}
+            canvas={dims}
             key={i}
           />
         })

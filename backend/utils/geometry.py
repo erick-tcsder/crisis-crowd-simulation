@@ -14,7 +14,8 @@ def to_triangles(polygon):
     poly_points = []
 
     gdf_poly_exterior = gpd.GeoDataFrame(
-        {'geometry': [polygon.exterior]}).explode().reset_index()
+        {'geometry': [polygon.exterior]}).explode(
+        index_parts=True).reset_index()
     for geom in gdf_poly_exterior.geometry:
         poly_points += np.array(geom.coords).tolist()
 
@@ -24,7 +25,8 @@ def to_triangles(polygon):
         poly_points = poly_points
     else:
         gdf_poly_interior = gpd.GeoDataFrame(
-            {'geometry': [polygon.interiors]}).explode().reset_index()
+            {'geometry': [polygon.interiors]}).explode(
+            index_parts=True).reset_index()
         for geom in gdf_poly_interior.geometry:
           poly_points += np.array(geom.coords).tolist()
 
@@ -33,7 +35,7 @@ def to_triangles(polygon):
 
     poly_shapes, pts = voronoi_regions_from_coords(poly_points, polygon)
     gdf_poly_voronoi = gpd.GeoDataFrame(
-        {'geometry': poly_shapes}).explode().reset_index()
+        {'geometry': poly_shapes}).explode(index_parts=True).reset_index()
 
     tri_geom = []
     for geom in gdf_poly_voronoi.geometry:
