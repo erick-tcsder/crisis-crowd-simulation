@@ -55,8 +55,8 @@ class GeneticPoints:
 
         ra = rs.random_sample(count)*(2*pi)
 
-        x_offs = np.abs(np.sin(ra))*m_distance
-        y_offs = np.abs(np.cos(ra))*m_distance
+        x_offs = np.sin(ra)*m_distance
+        y_offs = np.cos(ra)*m_distance
 
         moved_xs = xs+x_offs
         moved_ys = ys+y_offs
