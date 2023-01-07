@@ -76,4 +76,4 @@ def vulnerability_data(map: Blueprint, damage_radius: float):
     new_gen = gen_engine.next_gen(first_gen)
     while True:
         limit = min(len(new_gen), 10)
-        yield (gen_engine.generation, new_gen[:limit])
+        yield (gen_engine.generation, [(c.value.x*map.width, c.value.y*map.height) for c in new_gen[:limit]])
