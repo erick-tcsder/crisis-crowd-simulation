@@ -9,6 +9,7 @@ import asyncio
 from simulation.context import Pedestrian, SimulationContext
 import numpy as np
 import time
+from simulation.events import *
 
 app = FastAPI(debug=True)
 
@@ -163,12 +164,25 @@ async def stream_simulation_x1():
 
 
 async def stream_vulnerabilities():
-  i = 0
+  initTime = time.time()
+  geneticIterations = 0
+  maxGeneticIterations = 100
+  maxTime = 1200 #20 mins max
   while True:
-    if i == 10: break
-    yield f"data: {json.dumps({'bar': i})}\n\n"
-    i += 1
-    await asyncio.sleep(0.25)
+    if geneticIterations >= maxGeneticIterations or time.time() - initTime >= maxTime:
+      break
+    #Send Initialization of a genetic Iteration
+    await asyncio.sleep(0.1)
+    yield f"data: {json.dumps(LogEvent(f'Genetic Iteration {geneticIterations} STARTED').toJson())}\n\n"
+    #call the genetic iteration
+    #show results
+    #...
+  #Send ResultEvent + EndEvent
+  await asyncio.sleep(0.1)
+  yield f"data: {json.dumps(ResultEvent('Best Result after {geneticIterations} genetic Iterations',{'foo': 'asd'}).toJson())}\n\n"
+  await asyncio.sleep(0.1)
+  yield f"data: {json.dumps(EndEvent('Vulnerabilities Check Ended',None).toJson())}\n\n"
+  await asyncio.sleep(0.1)
   yield f"data: {json.dumps('end')}\n\n"
 
 @app.get("/simulation/stream")
