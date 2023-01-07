@@ -10,6 +10,7 @@ from simulation.context import Pedestrian, SimulationContext
 import numpy as np
 import time
 from simulation.events import *
+from simulation.metaheuristic import vulnerability_data
 
 app = FastAPI(debug=True)
 
@@ -34,71 +35,83 @@ class SimulationStart(BaseModel):
   explosionTop: float
   explosionLeft: float
   
+
 class VulnerabilityStart(BaseModel):
-  agentCount: int
   explosionDeathRadius: float
 
-simulationBuilding:List[Blueprint] = []
+
+simulationBuilding: List[Blueprint] = []
 simulationStatus = "SETTING UP"
 
-simulationContext : SimulationContext = None
+simulationContext: SimulationContext = None
+
 
 @app.get('/')
 def main():
   return RedirectResponse('/docs')
+
 
 @app.post('/simulation/restart')
 def restartSimulation():
   simulationBuilding.clear()
   return 'OK'
 
+
 @app.get('/map')
 def getMap():
   return [i.toJson() for i in simulationBuilding]
 
+
 @app.get('/map/{name}')
-def getMapByName(name:str):
+def getMapByName(name: str):
   for i in simulationBuilding:
     if i.name == name:
       return i.toJson()
-  return 'Not Found',404
+  return 'Not Found', 404
+
 
 @app.post('/map')
-def addMap(map:JsonBluePrint):
+def addMap(map: JsonBluePrint):
   if len(simulationBuilding) > 0:
-    return 'Map already exists',400
-  if simulationStatus == "RUNNING" :
-    return 'Simulation is running',400
+    return 'Map already exists', 400
+  if simulationStatus == "RUNNING":
+    return 'Simulation is running', 400
   if map.name in [i.name for i in simulationBuilding]:
-    simulationBuilding.remove([i for i in simulationBuilding if i.name == map.name][0])
+    simulationBuilding.remove(
+        [i for i in simulationBuilding if i.name == map.name][0])
   simulationBuilding.append(Blueprint.fromJson(map))
   return 'OK'
-  
+
+
 @app.delete('/map/{name}')
-def deleteMapByName(name:str):
-  if simulationStatus == "RUNNING" :
-    return 'Simulation is running',400
+def deleteMapByName(name: str):
+  if simulationStatus == "RUNNING":
+    return 'Simulation is running', 400
   for i in simulationBuilding:
     if i.name == name:
       simulationBuilding.remove(i)
       return 'OK'
-  return 'Not Found',404
+  return 'Not Found', 404
+
 
 @app.get('/simulation/status')
 def getSimulationStatus():
   status = {
-    "status": simulationStatus  
+      "status": simulationStatus
   }
   return status
 
+
 @app.post('/simulation/start')
-def simulationStart(data:SimulationStart):
+def simulationStart(data: SimulationStart):
   global simulationStatus
   simulationStatus = 'RUNNING'
   building = simulationBuilding[0]
-  start = (data.explosionLeft - data.explosionDeathRadius/2,data.explosionTop - data.explosionDeathRadius/2)
-  end = (data.explosionLeft + data.explosionDeathRadius/2,data.explosionTop + data.explosionDeathRadius/2)
-  damageZone = DamageZone([start,end],0.9)
+  start = (data.explosionLeft - data.explosionDeathRadius/2,
+           data.explosionTop - data.explosionDeathRadius/2)
+  end = (data.explosionLeft + data.explosionDeathRadius/2,
+         data.explosionTop + data.explosionDeathRadius/2)
+  damageZone = DamageZone([start, end], 0.9)
   building.objects.append(damageZone)
   a = 123
   global simulationContext
@@ -107,13 +120,16 @@ def simulationStart(data:SimulationStart):
   simulationContext.setup_pedestrians(data.agentCount, 123)
   simulationContext.setup_routes(123)
   return {
-    'status': simulationStatus
+      'status': simulationStatus
   }
 
+
 @app.post('/vulnerability/start')
-def vulnerabilityStart(data:VulnerabilityStart):
-  #TODO: do somthing with maps and incoming data
+def vulnerabilityStart(data: VulnerabilityStart):
+  global vuln_radius
+  vuln_radius = data.explosionDeathRadius
   return 'OK'
+
 
 @app.post('/simulation/stop')
 def simulationStop():
@@ -144,6 +160,7 @@ def simulationStop():
 #       yield f"data: {json.dumps(jsonedData)}\n\n"
 #   yield f"data: {json.dumps('end')}\n\n"
 
+
 async def stream_simulation_x1():
   if simulationStatus != 'RUNNING':
     yield f"data: {json.dumps('end')}\n\n"
@@ -152,18 +169,24 @@ async def stream_simulation_x1():
   simultionInterval = 0.125
   lasCycleTime = time.time()
   while True:
-    if simulationStatus == 'STOPPED': break
+    if simulationStatus == 'STOPPED':
+      break
     cycles += 1
     simulationContext.update()
-    await asyncio.sleep(max(waitInterval - time.time() + lasCycleTime,0.01))
+    await asyncio.sleep(max(waitInterval - time.time() + lasCycleTime, 0.01))
     lasCycleTime = time.time()
-    data : List[Pedestrian] = np.copy(simulationContext.agents)
-    jsonedData = {'ped':[i.toJson() for i in data],'time': cycles*simultionInterval}
+    data: List[Pedestrian] = np.copy(simulationContext.agents)
+    jsonedData = {'ped': [i.toJson() for i in data],
+                  'time': cycles * simultionInterval}
     yield f"data: {json.dumps(jsonedData)}\n\n"
   yield f"data: {json.dumps('end')}\n\n"
 
 
 async def stream_vulnerabilities():
+  stream = (candidates for _,
+            candidates in vulnerability_data(
+                simulationBuilding[0],
+                vuln_radius))
   initTime = time.time()
   geneticIterations = 0
   maxGeneticIterations = 100
@@ -175,11 +198,12 @@ async def stream_vulnerabilities():
     await asyncio.sleep(0.1)
     yield f"data: {json.dumps(LogEvent(f'Genetic Iteration {geneticIterations} STARTED').toJson())}\n\n"
     #call the genetic iteration
+    r = next(stream)
     #show results
     #...
   #Send ResultEvent + EndEvent
   await asyncio.sleep(0.1)
-  yield f"data: {json.dumps(ResultEvent('Best Result after {geneticIterations} genetic Iterations',{'foo': 'asd'}).toJson())}\n\n"
+  yield f"data: {json.dumps(ResultEvent(f'Best Result after {geneticIterations} genetic Iterations',{'bestPlaces': [{'top':c.value.y,'left':c.value.x} for c in r]}).toJson())}\n\n"
   await asyncio.sleep(0.1)
   yield f"data: {json.dumps(EndEvent('Vulnerabilities Check Ended',None).toJson())}\n\n"
   await asyncio.sleep(0.1)
