@@ -71,7 +71,7 @@ def vulnerability_data(map: Blueprint, damage_radius: float):
         minimize=True
     )
 
-    first_gen = [Point(np.random.rand(), np.random.rand())]
+    first_gen = [Candidate(None, Point(np.random.rand(), np.random.rand()))]
 
     new_gen = gen_engine.next_gen(first_gen)
     while True:
