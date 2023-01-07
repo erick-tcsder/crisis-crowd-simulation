@@ -51,6 +51,7 @@ export const useStreamingVuln = (loading,maps,vulnerabilityProps,onNewState,onSt
       const encode = TextEncoder.prototype.encode.bind(new TextEncoder())
       writer.write(encode(`{\n"vulnerabilityProps":${JSON.stringify(vulnerabilityProps)},\n"maps": ${JSON.stringify(maps)},\n"events": [\n`))
       eventSource.onmessage = (event) => {
+        console.log(JSON.parse(event.data))
         if(JSON.parse(event.data) === 'end'){
           onStreamingEnd?.()
           writer.write(encode('],\n "end": true\n}'))

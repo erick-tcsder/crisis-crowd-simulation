@@ -167,12 +167,14 @@ async def stream_vulnerabilities():
             candidates in vulnerability_data(
                 simulationBuilding[0],
                 vuln_radius))
+  print("started")
   initTime = time.time()
   geneticIterations = 0
   maxGeneticIterations = 2
   maxTime = 1200 #20 mins max
   bestResults = []
   while True:
+    geneticIterations += 1
     if geneticIterations >= maxGeneticIterations or time.time() - initTime >= maxTime:
       break
     #Send Initialization of a genetic Iteration
