@@ -138,21 +138,6 @@ export const SetupPage = (props)=>{
   },[mapBomb, navigator])
   
   const handleStartVulnerabilityAnasisys = useCallback(async()=>{
-    const {value: peopleCount} = await Swal.fire({
-      title: 'People Count',
-      input: 'number',
-      inputLabel: 'People Count',
-      inputPlaceholder: 'Enter the number of people on the building',
-      inputAttributes: {
-        min: 1,
-        max: 300
-      },
-      confirmButtonText: 'Next',
-      allowOutsideClick: false,
-      allowEscapeKey: false,
-      showCancelButton: true,
-      cancelButtonText: 'Cancel',
-    })
     const {value: bombRadius} = await Swal.fire({
       title: 'Bomb Radius',
       input: 'number',
@@ -164,11 +149,11 @@ export const SetupPage = (props)=>{
       showCancelButton: true,
       cancelButtonText: 'Cancel'
     })
-    if(!peopleCount || !bombRadius){
+    if(!bombRadius){
       return
     }
-    await SimulationService.startVulnerabilities(peopleCount,bombRadius)
-    navigator(`/vulnerability?pc=${peopleCount}&br=${bombRadius}`)
+    await SimulationService.startVulnerabilities(bombRadius)
+    navigator(`/vulnerability?&br=${bombRadius}`)
   },[navigator])
   return (
     <>

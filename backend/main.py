@@ -139,28 +139,6 @@ def simulationStop():
   simulationContext = None
   return 'OK'
 
-# async def stream_simulation():
-#   if simulationStatus != 'RUNNING':
-#     yield f"data: {json.dumps('end')}\n\n"
-#   ticks = 0
-#   cycles = 0
-#   waitInterval = 1
-#   tickInterval = 0.5
-#   simultionInterval = 0.125
-#   initTime = time.time()
-#   while True:
-#     cycles += 1
-#     simulationContext.update()
-#     if time.time() - initTime > tickInterval*ticks:
-#       await asyncio.sleep(0.1)
-#       ticks += 1
-#       data : List[Pedestrian] = np.copy(simulationContext.agents)
-#       print([i.toJson() for i in data])
-#       jsonedData = {'ped':[i.toJson() for i in data],'time': cycles*simultionInterval}
-#       yield f"data: {json.dumps(jsonedData)}\n\n"
-#   yield f"data: {json.dumps('end')}\n\n"
-
-
 async def stream_simulation_x1():
   if simulationStatus != 'RUNNING':
     yield f"data: {json.dumps('end')}\n\n"
@@ -172,13 +150,15 @@ async def stream_simulation_x1():
     if simulationStatus == 'STOPPED':
       break
     cycles += 1
-    simulationContext.update()
-    await asyncio.sleep(max(waitInterval - time.time() + lasCycleTime, 0.01))
+    ended = simulationContext.update()
+    await asyncio.sleep(max(waitInterval - time.time() + lasCycleTime,0.01))
     lasCycleTime = time.time()
     data: List[Pedestrian] = np.copy(simulationContext.agents)
     jsonedData = {'ped': [i.toJson() for i in data],
                   'time': cycles * simultionInterval}
     yield f"data: {json.dumps(jsonedData)}\n\n"
+    if ended: break
+  await asyncio.sleep(0.1)
   yield f"data: {json.dumps('end')}\n\n"
 
 

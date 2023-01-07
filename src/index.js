@@ -6,7 +6,7 @@ import {createBrowserRouter,RouterProvider, Link} from 'react-router-dom'
 import { MapPage } from './pages/mapPage';
 import { SetupPage } from './pages/setupPage';
 import { SimulationPage } from './pages/simulationPage';
-import { VulnerabilityPage } from './pages/vulnerabiblityPage';
+import { VulnerabilityPage } from './pages/vulnerabilityPage';
 
 
 const router = createBrowserRouter([
