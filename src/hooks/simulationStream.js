@@ -5,7 +5,7 @@ export const useStreamingAssets = (loading,maps,simulationProps,onNewState,onStr
   const positions = useRef([])
   useEffect(() => {
     const eventSource = new EventSource("http://localhost:8000/simulation/stream",{withCredentials:false})
-    const fileSaver = streamsaver.createWriteStream(`${filename}v4.json`)
+    const fileSaver = streamsaver.createWriteStream(`${filename}.json`)
       let writer = fileSaver.getWriter()
       let wroted = false
       const encode = TextEncoder.prototype.encode.bind(new TextEncoder())
@@ -41,17 +41,17 @@ export const useStreamingAssets = (loading,maps,simulationProps,onNewState,onStr
   }
 }
 
-export const useStreamingVuln = (loading,maps,simulationProps,onNewState,onStreamingEnd= ()=>{console.log('ENDED')},filename = 'vulnerabilities',) => {
+export const useStreamingVuln = (loading,maps,vulnerabilityProps,onNewState,onStreamingEnd= ()=>{console.log('ENDED')},filename = 'vulnerabilities',) => {
   const events = useRef([])
   useEffect(() => {
-    if(!loading && maps.length > 0 && simulationProps && simulationProps?.peopleCount){
-      let fileSaver = streamsaver.createWriteStream(`${filename}.json`)
+    const eventSource = new EventSource("http://localhost:8000/vulnerabilities/stream",{withCredentials:false})
+    const fileSaver = streamsaver.createWriteStream(`${filename}.json`)
       let writer = fileSaver.getWriter()
       let wroted = false
       const encode = TextEncoder.prototype.encode.bind(new TextEncoder())
-      writer.write(encode(`{\n"simulationProps":${JSON.stringify(simulationProps)},\n"maps": ${JSON.stringify(maps)},\n"events": [\n`))
-      const eventSource = new EventSource("http://localhost:8000/vulnerabilities/stream",{withCredentials:false});
+      writer.write(encode(`{\n"vulnerabilityProps":${JSON.stringify(vulnerabilityProps)},\n"maps": ${JSON.stringify(maps)},\n"events": [\n`))
       eventSource.onmessage = (event) => {
+        console.log(JSON.parse(event.data))
         if(JSON.parse(event.data) === 'end'){
           onStreamingEnd?.()
           writer.write(encode('],\n "end": true\n}'))
@@ -61,7 +61,7 @@ export const useStreamingVuln = (loading,maps,simulationProps,onNewState,onStrea
         }
         events.current.push(JSON.parse(event.data))
         onNewState?.(JSON.parse(event.data))
-        writer.write(encode(`${wroted ? ',\n' : ''}${event.data}`))
+        writer.write(encode(`${wroted ? ',\n' : ''}${JSON.stringify(JSON.parse(event.data).ped)}`))
         wroted = true
       };
       eventSource.onerror = (err)=>{
@@ -74,9 +74,8 @@ export const useStreamingVuln = (loading,maps,simulationProps,onNewState,onStrea
         writer.write(encode('],\n "end": false,\n "error": "closed by user"\n}'))
         writer.close()
         eventSource.close()
-      } 
-    }
-  }, [filename, loading, maps, simulationProps]);
+      }
+  }, []);
 
   return {
     events: events.current

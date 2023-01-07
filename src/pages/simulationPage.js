@@ -32,7 +32,7 @@ export const SimulationPage = ()=>{
     setTime(newState.time)
   },[])
   const onSEnd = useCallback(()=>{
-    Swal.fire('Simulation Ende','The simulation has ended','info')
+    Swal.fire('Simulation Ended','The simulation has ended','info')
   },[]) 
   useEffect(()=>{
     getMaps()

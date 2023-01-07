@@ -110,7 +110,7 @@ class SimulationContext:
         self.navmesh = build_navmesh(
             self.obstacle_map, NAVEGABLE_MINIMUM_DISTANCE)
 
-    def setup_pdestrians(self, pedestrians: int = 30, seed: int | None = None):
+    def setup_pedestrians(self, pedestrians: int = 30, seed: int | None = None):
         self.agents.clear()
         self.routes.clear()
 
@@ -176,7 +176,7 @@ class SimulationContext:
         while i < len(self.agents):
             p = self.agents[i]
             choosed_index = self.zone_choosed[i]
-            if choosed_index > len(self.safe_zones):
+            if choosed_index >= len(self.safe_zones):
                 p.status = Status.DEAD
                 continue
 
@@ -186,7 +186,6 @@ class SimulationContext:
 
             if l == -1:
                 self.zone_choosed[i] += 1
-                i -= 1
                 continue
 
             self.routes.append(r[1:])

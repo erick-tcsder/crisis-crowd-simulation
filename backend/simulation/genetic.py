@@ -28,12 +28,12 @@ class GeneticPoints:
 
     minimize: bool = False
 
-    __rs: np.random.RandomState = np.random.RandomState()
+    __rs = np.random.RandomState()
 
-    __min_fitness_total: float = float('inf')
-    __max_fitness_total: float = float('-inf')
+    __min_fitness_total = float('inf')
+    __max_fitness_total = float('-inf')
 
-    generation: int = 0
+    generation = 0
 
     def mutate(
             self,
@@ -112,8 +112,9 @@ class GeneticPoints:
 
         pairs: List[Tuple[int, int]] = []
 
-        for a_i, _ in enumerate(candidates[:self.mate_border+1]):
-            for b_i, _ in enumerate(candidates[a_i+1:self.mate_border+1]):
+        limit = min(self.mate_border+1, len(candidates))
+        for a_i, _ in enumerate(candidates[:limit]):
+            for b_i, _ in enumerate(candidates[a_i+1:limit]):
                 pairs.append((a_i, b_i))
 
         pairs.sort(key=lambda x: sum(x))
@@ -143,7 +144,8 @@ class GeneticPoints:
         mat = self.mate_selection(parents)
         mut = self.mutate_selection(parents, rs)
 
-        new_ones = parents[:self.inmutate_maximum]
+        limit = min(self.inmutate_maximum,len(parents))
+        new_ones = parents[:limit]
         new_ones = new_ones+self.mate(*mat)
         new_ones = new_ones+self.mutate(mut)
 
