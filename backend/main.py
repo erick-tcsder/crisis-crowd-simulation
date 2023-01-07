@@ -170,12 +170,12 @@ async def stream_vulnerabilities():
   print("started")
   initTime = time.time()
   geneticIterations = 0
-  maxGeneticIterations = 2
+  maxGeneticIterations = 10
   maxTime = 1200 #20 mins max
   bestResults = []
   while True:
     geneticIterations += 1
-    if geneticIterations >= maxGeneticIterations or time.time() - initTime >= maxTime:
+    if geneticIterations > maxGeneticIterations or time.time() - initTime >= maxTime:
       break
     #Send Initialization of a genetic Iteration
     await asyncio.sleep(0.1)
