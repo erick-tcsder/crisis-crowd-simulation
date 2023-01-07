@@ -4,10 +4,10 @@ import numpy as np
 from shapely import LineString, Point, distance, prepare
 
 import simulation.parameters as params
-from context import SimulationContext
-from environment.blueprint import Blueprint
-from environment.environment_objects import DamageZone
-from genetic import *
+from simulation.context import SimulationContext
+from simulation.environment.blueprint import Blueprint
+from simulation.environment.environment_objects import DamageZone
+from simulation.genetic import *
 
 
 def vulnerability_data(map: Blueprint, damage_radius: float):
