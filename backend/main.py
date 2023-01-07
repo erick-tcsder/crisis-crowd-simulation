@@ -171,21 +171,24 @@ async def stream_vulnerabilities():
   geneticIterations = 0
   maxGeneticIterations = 100
   maxTime = 1200 #20 mins max
+  bestResults = []
   while True:
     if geneticIterations >= maxGeneticIterations or time.time() - initTime >= maxTime:
       break
     #Send Initialization of a genetic Iteration
     await asyncio.sleep(0.1)
-    yield f"data: {json.dumps(LogEvent(f'Genetic Iteration {geneticIterations} STARTED').toJson())}\n\n"
+    yield f"data: {json.dumps(LogEvent(f'Genetic Iteration {geneticIterations} STARTED ... please wait a sec ⌚ (maybe more)').toJson())}\n\n"
     #call the genetic iteration
-    r = next(stream)
+    bestResults = next(stream)
     #show results
+    await asyncio.sleep(0.1)
+    yield f"data: {json.dumps(ResultEvent(f'Best Result after {geneticIterations} genetic Iterations 🧬',{'bestPlaces': [{'top':c.y,'left':c.x} for c in bestResults]}).toJson())}\n\n"
+    await asyncio.sleep(0.1)
+    yield f"data: {json.dumps(LogEvent(f'Genetic Iteration {geneticIterations} ENDED 🎉🎉🎉').toJson())}\n\n"
     #...
   #Send ResultEvent + EndEvent
   await asyncio.sleep(0.1)
-  yield f"data: {json.dumps(ResultEvent(f'Best Result after {geneticIterations} genetic Iterations',{'bestPlaces': [{'top':c.y,'left':c.x} for c in r]}).toJson())}\n\n"
-  await asyncio.sleep(0.1)
-  yield f"data: {json.dumps(EndEvent('Vulnerabilities Check Ended',None).toJson())}\n\n"
+  yield f"data: {json.dumps(EndEvent('Vulnerabilities Check Ended 🦸‍♂️(A great power ...)',None).toJson())}\n\n"
   await asyncio.sleep(0.1)
   yield f"data: {json.dumps('end')}\n\n"
 

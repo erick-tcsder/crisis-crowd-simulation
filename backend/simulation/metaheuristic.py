@@ -3,22 +3,22 @@ from typing import List
 import numpy as np
 from shapely import LineString, Point, distance, prepare
 
-import simulation.parameters as params
-from simulation.context import SimulationContext
-from simulation.environment.blueprint import Blueprint
-from simulation.environment.environment_objects import DamageZone
-from simulation.genetic import *
+from .parameters import *
+from .context import SimulationContext
+from .environment.blueprint import Blueprint
+from .environment.environment_objects import DamageZone
+from .genetic import *
 
 
 def vulnerability_data(map: Blueprint, damage_radius: float):
-    map.objects = [obj for obj in map.objects if not isDamage(obj)]
-
     def isDamage(obj):
         try:
             _ = obj.damageFactor
             return True
         except:
             return False
+        
+    map.objects = [obj for obj in map.objects if not isDamage(obj)]
 
     def test_position(p: Point) -> float:
         # Points to create the sphere
@@ -33,8 +33,8 @@ def vulnerability_data(map: Blueprint, damage_radius: float):
         ))
 
         # Population of the simulation
-        pop = np.random.randint(params.VULNERABILITY_POP_MIN,
-                                params.VULNERABILITY_POP_MAX+1)
+        pop = np.random.randint(VULNERABILITY_POP_MIN,
+                                VULNERABILITY_POP_MAX+1)
 
         # start simulation
         sim_context = SimulationContext(map)

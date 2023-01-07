@@ -21,9 +21,8 @@ export class SimulationService{
       explosionLeft,
     });
   }
-  static async startVulnerabilities(agentCount,explosionDeathRadius){
+  static async startVulnerabilities(explosionDeathRadius){
     return await SimulationService.axios.post('/vulnerability/start',{
-      agentCount,
       explosionDeathRadius,
     });
   }
