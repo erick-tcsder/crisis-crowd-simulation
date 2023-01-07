@@ -3,9 +3,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse,RedirectResponse
 import json
-from core import Blueprint
+from simulation.environment.blueprint import Blueprint, DamageZone
 from pydantic import BaseModel
 import asyncio
+from simulation.context import Pedestrian, SimulationContext
+import numpy as np
+import time
+from simulation.events import *
 
 app = FastAPI(debug=True)
 
@@ -37,6 +41,8 @@ class VulnerabilityStart(BaseModel):
 simulationBuilding:List[Blueprint] = []
 simulationStatus = "SETTING UP"
 
+simulationContext : SimulationContext = None
+
 @app.get('/')
 def main():
   return RedirectResponse('/docs')
@@ -59,6 +65,8 @@ def getMapByName(name:str):
 
 @app.post('/map')
 def addMap(map:JsonBluePrint):
+  if len(simulationBuilding) > 0:
+    return 'Map already exists',400
   if simulationStatus == "RUNNING" :
     return 'Simulation is running',400
   if map.name in [i.name for i in simulationBuilding]:
@@ -81,14 +89,26 @@ def getSimulationStatus():
   status = {
     "status": simulationStatus  
   }
-  if simulationStatus == 'RUNNING' :
-    status.conection = '8080'
   return status
 
 @app.post('/simulation/start')
 def simulationStart(data:SimulationStart):
+  global simulationStatus
   simulationStatus = 'RUNNING'
-  return 'OK'
+  building = simulationBuilding[0]
+  start = (data.explosionLeft - data.explosionDeathRadius/2,data.explosionTop - data.explosionDeathRadius/2)
+  end = (data.explosionLeft + data.explosionDeathRadius/2,data.explosionTop + data.explosionDeathRadius/2)
+  damageZone = DamageZone([start,end],0.9)
+  building.objects.append(damageZone)
+  a = 123
+  global simulationContext
+  simulationContext = SimulationContext(building)
+  simulationContext.setup_navmesh()
+  simulationContext.setup_pdestrians(data.agentCount, 123)
+  simulationContext.setup_routes(123)
+  return {
+    'status': simulationStatus
+  }
 
 @app.post('/vulnerability/start')
 def vulnerabilityStart(data:VulnerabilityStart):
@@ -97,31 +117,78 @@ def vulnerabilityStart(data:VulnerabilityStart):
 
 @app.post('/simulation/stop')
 def simulationStop():
+  global simulationStatus
+  global simulationContext
   simulationStatus = 'STOPPED'
+  simulationContext = None
   return 'OK'
 
-async def stream_simulation():
-  i = 0
+# async def stream_simulation():
+#   if simulationStatus != 'RUNNING':
+#     yield f"data: {json.dumps('end')}\n\n"
+#   ticks = 0
+#   cycles = 0
+#   waitInterval = 1
+#   tickInterval = 0.5
+#   simultionInterval = 0.125
+#   initTime = time.time()
+#   while True:
+#     cycles += 1
+#     simulationContext.update()
+#     if time.time() - initTime > tickInterval*ticks:
+#       await asyncio.sleep(0.1)
+#       ticks += 1
+#       data : List[Pedestrian] = np.copy(simulationContext.agents)
+#       print([i.toJson() for i in data])
+#       jsonedData = {'ped':[i.toJson() for i in data],'time': cycles*simultionInterval}
+#       yield f"data: {json.dumps(jsonedData)}\n\n"
+#   yield f"data: {json.dumps('end')}\n\n"
+
+async def stream_simulation_x1():
+  if simulationStatus != 'RUNNING':
+    yield f"data: {json.dumps('end')}\n\n"
+  cycles = 0
+  waitInterval = 0.0625
+  simultionInterval = 0.125
+  lasCycleTime = time.time()
   while True:
-    if i == 10: break
-    yield f"data: {json.dumps({'foo': i})}\n\n"
-    i += 1
-    await asyncio.sleep(0.5)
+    if simulationStatus == 'STOPPED': break
+    cycles += 1
+    simulationContext.update()
+    await asyncio.sleep(max(waitInterval - time.time() + lasCycleTime,0.01))
+    lasCycleTime = time.time()
+    data : List[Pedestrian] = np.copy(simulationContext.agents)
+    jsonedData = {'ped':[i.toJson() for i in data],'time': cycles*simultionInterval}
+    yield f"data: {json.dumps(jsonedData)}\n\n"
   yield f"data: {json.dumps('end')}\n\n"
 
+
 async def stream_vulnerabilities():
-  i = 0
+  initTime = time.time()
+  geneticIterations = 0
+  maxGeneticIterations = 100
+  maxTime = 1200 #20 mins max
   while True:
-    if i == 10: break
-    yield f"data: {json.dumps({'bar': i})}\n\n"
-    i += 1
-    await asyncio.sleep(0.5)
+    if geneticIterations >= maxGeneticIterations or time.time() - initTime >= maxTime:
+      break
+    #Send Initialization of a genetic Iteration
+    await asyncio.sleep(0.1)
+    yield f"data: {json.dumps(LogEvent(f'Genetic Iteration {geneticIterations} STARTED').toJson())}\n\n"
+    #call the genetic iteration
+    #show results
+    #...
+  #Send ResultEvent + EndEvent
+  await asyncio.sleep(0.1)
+  yield f"data: {json.dumps(ResultEvent('Best Result after {geneticIterations} genetic Iterations',{'foo': 'asd'}).toJson())}\n\n"
+  await asyncio.sleep(0.1)
+  yield f"data: {json.dumps(EndEvent('Vulnerabilities Check Ended',None).toJson())}\n\n"
+  await asyncio.sleep(0.1)
   yield f"data: {json.dumps('end')}\n\n"
 
 @app.get("/simulation/stream")
-async def stream():
-  return StreamingResponse(stream_simulation(), media_type="text/event-stream")
+async def streamSim():
+  return StreamingResponse(stream_simulation_x1(), media_type="text/event-stream")
 
 @app.get("/vulnerabilities/stream")
-async def stream():
+def streamVul():
   return StreamingResponse(stream_vulnerabilities(), media_type="text/event-stream")

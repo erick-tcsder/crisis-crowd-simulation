@@ -131,7 +131,9 @@ export const SetupPage = (props)=>{
     if(!peopleCount || !bombTop || !bombLeft || !bombRadius){
       return
     }
+    Swal.showLoading()
     await SimulationService.startSimulation(peopleCount,bombRadius,mapBomb,bombTop,bombLeft)
+    Swal.close()
     navigator(`/simulation?pc=${peopleCount}&br=${bombRadius}&mb=${mapBomb}&bt=${bombTop}&bl=${bombLeft}`)
   },[mapBomb, navigator])
   

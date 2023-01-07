@@ -2,6 +2,46 @@ import math
 from typing import List, Tuple
 from numpy.linalg import norm
 import numpy as np
+import numpy as np
+from shapely.geometry import Polygon
+from shapely.ops import triangulate
+import geopandas as gpd
+from geovoronoi import voronoi_regions_from_coords
+
+
+def to_triangles(polygon):
+
+    poly_points = []
+
+    gdf_poly_exterior = gpd.GeoDataFrame(
+        {'geometry': [polygon.exterior]}).explode().reset_index()
+    for geom in gdf_poly_exterior.geometry:
+        poly_points += np.array(geom.coords).tolist()
+
+    try:
+        polygon.interiors[0]
+    except:
+        poly_points = poly_points
+    else:
+        gdf_poly_interior = gpd.GeoDataFrame(
+            {'geometry': [polygon.interiors]}).explode().reset_index()
+        for geom in gdf_poly_interior.geometry:
+          poly_points += np.array(geom.coords).tolist()
+
+    poly_points = np.array(
+        [item for sublist in poly_points for item in sublist]).reshape(-1, 2)
+
+    poly_shapes, pts = voronoi_regions_from_coords(poly_points, polygon)
+    gdf_poly_voronoi = gpd.GeoDataFrame(
+        {'geometry': poly_shapes}).explode().reset_index()
+
+    tri_geom = []
+    for geom in gdf_poly_voronoi.geometry:
+        inside_triangles = [tri for tri in triangulate(
+            geom) if tri.centroid.within(polygon)]
+        tri_geom += inside_triangles
+
+    return tri_geom
 
 def internal_angles(p1: Tuple[float, float], 
                     p2: Tuple[float, float], 

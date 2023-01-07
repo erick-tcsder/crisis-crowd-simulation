@@ -1,7 +1,7 @@
 from functools import lru_cache, total_ordering
 from typing import Dict, List, Set, Tuple
 from shapely import Point, Polygon, MultiPolygon, LineString, prepare
-from shapely.ops import triangulate
+from utils.geometry import to_triangles as triangulate
 from dataclasses import dataclass
 import heapq as heap
 
@@ -29,20 +29,23 @@ def build_navmesh(
     # Space parameter define how much space is needed in an area
     # allow a person go through it
     map = map.buffer(-space, cap_style='flat', join_style='bevel')
+    if isinstance(map, Polygon):
+        map = MultiPolygon([map])
+
+    prepare(map)
 
     # Delaunay triangulation, works bad for non-convex
     tris = []
     for p in map.geoms:
         # For each polygon triangulate an select only the ones within
         # original figure (clip)
-        tris.extend((t for t in triangulate(p) if t.within(map)))
+        tris.extend((t for t in triangulate(p)))
 
     multi = MultiPolygon(tris)
 
     # Adjacent list, tells what are the neighbors points of a point
     adj: ADJACENT_MATRIX = {}
 
-    prepare(map)
     prepare(multi)
 
     nv = Navmesh(map, multi, {}, {})
@@ -145,6 +148,7 @@ class HeapObject:
     def __lt__(self, __o: object) -> bool:
         return sum(self.weight) < sum(__o.weight)
 
+
 def a_star(navmesh: Navmesh, start: Point, end: Point) -> Tuple[List[Point], float]:
     """
     Find the closest-enough path from `start` to `end` using the given navmesh, is not actually
@@ -188,6 +192,9 @@ def a_star(navmesh: Navmesh, start: Point, end: Point) -> Tuple[List[Point], flo
 
     heap.heappush(h, HeapObject(weight(a_star_s[0], None), [a_star_s[0]]))
     while True:
+        if len(h) == 0:
+            return ([], -1)
+
         o = heap.heappop(h)
         w = o.weight
         route = o.route
@@ -197,19 +204,20 @@ def a_star(navmesh: Navmesh, start: Point, end: Point) -> Tuple[List[Point], flo
 
         # The destination point was poped from the heap
         if route[-1].equals(a_star_e[0]):
+            route=[start]+route+[end]
             # Patch to fix back-travel. Essentially check if the way between
             # the second point of the route in the A* and the real start point
             # is walkable, if that so then delete the first point in the route.
             # This will always shorten the path.
-            if LineString([start, route[1]]).within(navmesh.flat_polygon):
-                route = route[1:]
+            if LineString([start, route[2]]).within(navmesh.flat_polygon):
+                route = [start]+route[2:]
             # Similar process but with the last points
-            if LineString([end, route[-2]]).within(navmesh.flat_polygon):
-                route=route[:-1]
-                
+            if len(route) != 2:
+                if LineString([end, route[-2]]).within(navmesh.flat_polygon):
+                    route = route[:-2]+[end]
+
             # So this is the route
-            # Real start and end point must be added
-            full_route = [start]+route+[end]
+            full_route = route
             return (full_route, w[0])
 
         neighbors = neigh(route[-1])
@@ -229,4 +237,4 @@ def clamp_route(navmesh: Navmesh, point: Point, route: List[Point]) -> Tuple[Lis
         p = route[pi]
         if LineString([point, p]).within(navmesh.flat_polygon):
             return (route[pi:], True)
-        return (route, False)
+    return (route, False)

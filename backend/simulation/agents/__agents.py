@@ -6,9 +6,12 @@ from shapely import Point, MultiPolygon, LineString, shortest_line, prepare, Mul
 from numpy.linalg import norm
 from ..environment.environment_objects import EnvObj
 import simulation.parameters as params
+from enum import Enum
+
+Status = Enum('Status', 'ALIVE DEAD SAFE')
 
 
-@dataclass(kw_only=True, slots=True)
+@dataclass(kw_only=True, slots=True, eq=False, repr=False)
 class Pedestrian:
     map: MultiPolygon
     map_boundary: MultiLineString
@@ -18,19 +21,23 @@ class Pedestrian:
     mass: float = params.PEDESTRIAN_MASS
     radius: float = params.PEDESTRIAN_RADIUS
     direction: np.ndarray = np.array([.0, .0])
+    id: int
 
-    velocity = np.array([.0, .0])
+    velocity: np.ndarray = np.array([.0, .0])
+    status: Status = Status.ALIVE
+
+    def __repr__(self) -> str:
+        return f'Pedestrian {self.id} [{self.position[0]:.2f} x {self.position[1]:.2f}]'
 
     def repulsion_force(self, pedestrians: List[Self]):
         fij = np.zeros_like(self.position)
 
         # Add the force of interactions with the other pedestrians.
         for ped in pedestrians:
-            if ped == self:
+            if ped == self or ped.status != ped.status.ALIVE:
                 continue
 
-            line = [ped.position, self.position]
-            dif = np.fromiter((norm(x) for x in (line[1]-line[0])), dtype=float)
+            dif = self.position-ped.position
 
             j = self.radius + ped.radius
 
@@ -40,19 +47,22 @@ class Pedestrian:
         return fij
 
     # Calculates the distance of a pedestrian to a wall.
-    def wall_difference(self, geo=None, geo_boundary=None):
+    def wall_difference(self, geo=None, geo_boundary=None, inverse=False):
         if geo is None:
             geo = self.map
         if geo_boundary is None:
-            geo = self.map_boundary
+            geo_boundary = self.map_boundary
         p = self.position    # pedestrian position
 
         vp = list(shortest_line(geo_boundary, self.position_point).coords)
-        vp = [np.array(self.position_point.xy) for p in vp]
+        vp = [np.array([Point(p).x, Point(p).y]) for p in vp]
 
-        r = np.fromiter((norm(x) for x in (vp[1]-vp[0])), dtype=float)
-        if self.position_point.within(geo):
+        r = vp[1]-vp[0]
+
+        if ((not self.position_point.within(geo)) ^ inverse):
             return r*-1
+
+        return r
 
     # Function to calculate the repulsion force with respect to the walls.
     def wall_force(self) -> float:
@@ -78,7 +88,7 @@ class Pedestrian:
             geo = Polygon(zone.getRoundingBox())
             # Add the force of interactions with the zone.
             dif = self.wall_difference(
-                geo, geo.boundary
+                geo, geo.boundary, True
             )  # difference vector
 
             j = self.radius
@@ -92,12 +102,11 @@ class Pedestrian:
     def calculate_forces(self, dif: np.ndarray, j: float,
                          a: float = params.A_CONSTANT,
                          b: float = params.B_CONSTANT) -> float:
-        diW = norm(dif)
-        r = self.radius                            # pedestrian radius
+        diW = norm(dif)                         # pedestrian radius
         niW = dif / diW                            # normalized difference vector
 
         f_repulsive = a * np.exp(
-            (r - diW) / b) * niW
+            (j - diW) / b) * niW
 
         f_total = f_repulsive
 
@@ -108,7 +117,7 @@ class Pedestrian:
             # dv = np.dot(self.v, tiW)           # tangential velocity
 
             # Body force that the pedestrian exerts on the wall.
-            f_body = (params.K1_CONSTANT * (r - diW)) * niW
+            f_body = (params.K1_CONSTANT * (j - diW)) * niW
 
             # Friction force between pedestrian and wall.
             # f_friction = (self.K * (r - diW) * dv) * tiW
@@ -122,7 +131,10 @@ class Pedestrian:
     # Function to update the pedestrian speed.
     def update_velocity(self,
                         pedestrians: List[Self]):
-        e0 /= norm(e0)
+        if self.status != Status.ALIVE:
+            self.velocity = self.direction = np.array([.0, .0])
+            return
+        # e0 /= norm(e0)
         # We calculate the force of repulsion of this pedestrian with the others.
         fij = self.repulsion_force(pedestrians)
         # We calculate the repulsive force of this pedestrian with the walls.
@@ -145,4 +157,15 @@ class Pedestrian:
     def update_position(self):
         # Updates the position with respect to speed and elapsed time (p = v * t)
         self.position += self.velocity * params.TIME_STEP
+        if self.position[0] >= self.map.bounds[2] or self.position[1] >= self.map.bounds[3]:
+            pass
         self.position_point = Point(*self.position)
+
+    def toJson(self):
+        return {
+            'id': self.id,
+            'top': self.position[1],
+            'left': self.position[0],
+            'width': self.radius*2,
+            'status': self.status.name
+        }

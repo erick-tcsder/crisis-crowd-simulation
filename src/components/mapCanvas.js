@@ -148,6 +148,7 @@ export const MapCanvas = ({ map, handleChangeMap, creating, handleUncreate, have
   const crtng = useRef(false)
   const coordsRef = useRef({})
   const aspectRatio = useMemo(() => {
+    if(!map) return
     return map.width / map.height;
   }, [map]);
 
@@ -262,8 +263,8 @@ export const MapCanvas = ({ map, handleChangeMap, creating, handleUncreate, have
     canvasRef.current.style.display = 'flex'
   },[aspectRatio, props.containerRef, setDims])
   return (
-    <div ref={canvasRef} className='m-auto bg-white relative'>
-      {map.items.map((obj,index) => (
+    <div ref={canvasRef} className='m-auto bg-white relative overflow-hidden'>
+      {map && map.items.map((obj,index) => (
         <EnviromentFactory
           canvas={dims}
           map={map}
@@ -274,7 +275,7 @@ export const MapCanvas = ({ map, handleChangeMap, creating, handleUncreate, have
       ))}
       {havePedestrians ? pedestrianPositions.map((p,i)=>{
         return (
-          <Pedestrian canvas={dims} left={p.left} map={map} top={p.top} width={p.width} key={i} status={p.status}/>
+          <Pedestrian canvas={dims} left={p.left} id={p.id} map={map} top={p.top} width={p.width} key={i} status={p.status}/>
         )
       }) : <></>}
       <div ref={creatingShape}/>

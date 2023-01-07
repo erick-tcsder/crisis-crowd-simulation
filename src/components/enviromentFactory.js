@@ -96,7 +96,7 @@ export const envMapper = {
   DAMAGE_ZONE: (props)=>{
     return (
       <div
-        className="absolute bg-red-500 bg-opacity-30 border-red-500 border-2 grid place-content-center"
+        className="absolute bg-red-500 bg-opacity-30 border-red-500 border-2 rounded-full grid place-content-center"
         style={{
           top: Utils.getMToPx(props.map, props.canvas, props.top),
           left: Utils.getMToPx(props.map, props.canvas, props.left),
