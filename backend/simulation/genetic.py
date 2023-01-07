@@ -147,7 +147,7 @@ class GeneticPoints:
         limit = min(self.inmutate_maximum,len(parents))
         new_ones = parents[:limit]
         new_ones = new_ones+self.mate(*mat)
-        new_ones = sorted(new_ones+self.mutate(mut), not (self.minimize))
+        new_ones = new_ones+self.mutate(mut)
 
         self.generation += 1
 
