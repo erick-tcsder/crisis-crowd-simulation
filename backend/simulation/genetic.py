@@ -108,7 +108,7 @@ class GeneticPoints:
                                                                    List[Candidate]]:
         self.calculate_fitness(candidates)
 
-        candidates.sort(reverse=not (self.minimize))
+        candidates.sort(reverse=not (self.minimize), key=lambda x: x.fitness)
 
         pairs: List[Tuple[int, int]] = []
 
@@ -147,7 +147,7 @@ class GeneticPoints:
         limit = min(self.inmutate_maximum,len(parents))
         new_ones = parents[:limit]
         new_ones = new_ones+self.mate(*mat)
-        new_ones = new_ones+self.mutate(mut)
+        new_ones = sorted(new_ones+self.mutate(mut), not (self.minimize))
 
         self.generation += 1
 
