@@ -176,7 +176,7 @@ class SimulationContext:
         while i < len(self.agents):
             p = self.agents[i]
             choosed_index = self.zone_choosed[i]
-            if choosed_index > len(self.safe_zones):
+            if choosed_index >= len(self.safe_zones):
                 p.status = Status.DEAD
                 continue
 
