@@ -42,15 +42,8 @@ class GeneticPoints:
         self.calculate_fitness(candidates)
         xs = np.fromiter((c.value.x for c in candidates), dtype=float)
         ys = np.fromiter((c.value.y for c in candidates), dtype=float)
-        fs = np.fromiter((c.fitness for c in candidates), dtype=float)
 
-        m_distance = np.interp(
-            fs,
-            (self.__min_fitness_total, self.__max_fitness_total),
-            (self.min_mutation_distance if self.minimize else self.max_mutation_distance,
-             self.max_mutation_distance if self.minimize else self.min_mutation_distance)
-        )
-
+        m_distance = rs.uniform(self.min_mutation_distance,self.max_mutation_distance,len(candidates))
         count = len(xs)
 
         ra = rs.random_sample(count)*(2*pi)

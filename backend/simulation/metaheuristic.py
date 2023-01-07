@@ -24,7 +24,7 @@ def vulnerability_data(map: Blueprint, damage_radius: float):
         # Points to create the sphere
         p1 = np.array([p.x*map.width, p.y*map.height])  # center
         # point at distance equals to the radius from the center
-        p2 = damage_radius*(np.array([(map.width/2), (map.height/2)])-p1)
+        p2 = p1+np.array([.0, damage_radius])
 
         # Put the bomb
         map.objects.append(DamageZone(
