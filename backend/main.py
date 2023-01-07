@@ -182,7 +182,7 @@ async def stream_vulnerabilities():
     bestResults = next(stream)
     #show results
     await asyncio.sleep(0.1)
-    yield f"data: {json.dumps(ResultEvent(f'Best Result after {geneticIterations} genetic Iterations 🧬',{'bestPlaces': [{'top':c.y,'left':c.x} for c in bestResults]}).toJson())}\n\n"
+    yield f"data: {json.dumps(ResultEvent(f'Best Result after {geneticIterations} genetic Iterations 🧬',{'bestPlaces': [{'top':c[1],'left':c[0]} for c in bestResults]}).toJson())}\n\n"
     await asyncio.sleep(0.1)
     yield f"data: {json.dumps(LogEvent(f'Genetic Iteration {geneticIterations} ENDED 🎉🎉🎉').toJson())}\n\n"
     #...

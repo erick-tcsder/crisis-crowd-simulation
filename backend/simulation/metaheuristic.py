@@ -47,7 +47,7 @@ def vulnerability_data(map: Blueprint, damage_radius: float):
         # Create a line string from the route of the pedestrians
         strings = [
             LineString(path)
-            if len(path) !=0 else(path[0] if len(path ==1) else None)
+            if len(path) > 1 else (path[0] if len(path == 1) else None)
             for path in sim_context.routes]
 
         dmg_zone = sim_context.danger_zone_map
