@@ -110,7 +110,7 @@ class SimulationContext:
         self.navmesh = build_navmesh(
             self.obstacle_map, NAVEGABLE_MINIMUM_DISTANCE)
 
-    def setup_pdestrians(self, pedestrians: int = 30, seed: int | None = None):
+    def setup_pedestrians(self, pedestrians: int = 30, seed: int | None = None):
         self.agents.clear()
         self.routes.clear()
 

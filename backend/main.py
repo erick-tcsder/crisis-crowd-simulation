@@ -104,7 +104,7 @@ def simulationStart(data:SimulationStart):
   global simulationContext
   simulationContext = SimulationContext(building)
   simulationContext.setup_navmesh()
-  simulationContext.setup_pdestrians(data.agentCount, 123)
+  simulationContext.setup_pedestrians(data.agentCount, 123)
   simulationContext.setup_routes(123)
   return {
     'status': simulationStatus
