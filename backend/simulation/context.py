@@ -10,6 +10,7 @@ from .agents import Pedestrian, Status
 from .environment.blueprint import Blueprint
 from .environment.environment_objects import Door, EnvObj, DamageZone
 from .navmesh import Navmesh, build_navmesh, a_star, clamp_route
+from name_generator import HMM, defaultHMM
 
 
 class SimulationContext:
@@ -25,6 +26,8 @@ class SimulationContext:
 
     navmesh: Navmesh
 
+    hmm: HMM
+
     # Matrix with the zones in order of priority for every pedestrian (rows)
     zones_to_go: np.ndarray
     zone_choosed: np.ndarray  # Index of which zone is searching right now
@@ -33,6 +36,7 @@ class SimulationContext:
     ticks: int = 0
 
     def __init__(self, map: Blueprint) -> None:
+        print("Loading map...")
         self.map_blueprint = map
 
         obs: List[Polygon] = []
@@ -102,6 +106,7 @@ class SimulationContext:
             lambda x, y: x.union(y),  # union
             [Polygon(obj.getRoundingBox()) for obj in dz]  # of all danger zones
         )
+        print("Map loaded")
 
     def setup_navmesh(self):
         self.agents.clear()
@@ -109,8 +114,12 @@ class SimulationContext:
         print("Building navmesh...")
         self.navmesh = build_navmesh(
             self.obstacle_map, NAVEGABLE_MINIMUM_DISTANCE)
+        print("Navmesh builded")
 
     def setup_pedestrians(self, pedestrians: int = 30, seed: int | None = None):
+        print("Generating pedestrians...")
+        self.hmm = defaultHMM
+
         self.agents.clear()
         self.routes.clear()
 
@@ -143,7 +152,7 @@ class SimulationContext:
         # Radius (distance from shoulder to shoulder) has uniform distribution
         rads = rs.uniform(.25, .35, pedestrians)
 
-        r = rs.randint(10000, size=pedestrians)
+        r = rs.randint(3, 10, size=pedestrians)
 
         self.agents = [
             Pedestrian(
@@ -154,11 +163,13 @@ class SimulationContext:
                 mass=m,
                 radius=rad,
                 position_point=Point(x, y),
-                id=f'{i}'
+                id=self.hmm.getWord(i)
             ) for x, y, m, rad, i in zip(xs, ys, ms, rads, r)
         ]
+        print("Pedestrians generated")
 
     def setup_routes(self, seed: int | None = None):
+        print("Calculating routes...")
         self.routes.clear()
 
         rs = np.random.RandomState(seed)
@@ -192,6 +203,8 @@ class SimulationContext:
 
             self.routes.append(r[1:])
             i += 1
+        print("Routes calculated")
+        print("Simulation ready")
 
     def update(self):
         self.update_routes()
