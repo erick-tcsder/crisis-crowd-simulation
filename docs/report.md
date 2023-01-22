@@ -22,8 +22,8 @@
     - [Miedo de la zona de peligro](#miedo-de-la-zona-de-peligro)
     - [Sesgo](#sesgo)
     - [Imposición de sus objetivos](#imposición-de-sus-objetivos)
-    - [Huida con éxito](#huida-con-éxito)
     - [Cuellos de botella](#cuellos-de-botella)
+    - [Huida con éxito](#huida-con-éxito)
     - [Vulnerabilidades encontradas en zonas estrechas](#vulnerabilidades-encontradas-en-zonas-estrechas)
     - [Nombres aleatorios](#nombres-aleatorios)
   - [Referencias](#referencias)
@@ -168,7 +168,7 @@ La función objetivo a optimizar y por tanto el *fitness* de cada solución est�
 
 Teniendo esto en cuenta se propone la heurística dada por *el promedio de la distancia a la zona de peligro de cada una de las rutas calculadas para las personas en la simulación*. En lugar de ejecutar toda la simulación y comprobar resultados se realiza por cada solución propuesta solo el cálculo inicial de la navmesh, la generación de personas en el espacio simulado y el cálculo de las rutas de esta. Luego, si una persona tiene una ruta que lo fuerza a pasar cerca de la zona de peligro entonces su escapé se afectará enormemente. Si la zona bloquea cualquier ruta posible de una persona se considera que la distancia es $0$. De esta forma se tiene una función objetivo medianamente continua.
 
-Después de varias pruebas se encontraron valores $C$,$M$,$I$ para los cuales el algoritmo se comporta de una forma aceptable. El crossover en la mayoría de los casos imposibilitó *la exploración* y hacia que se centrara más el algoritmo en la explotación entonces, se eliminó este con $C=0$, luego se establecieron los valores $M=39$ y $I=10$. Haciendo un total de 49 soluciones en cada generación.
+Después de varias pruebas se encontraron valores $C$,$M$,$I$ para los cuales el algoritmo se comporta de una forma aceptable. El crossover en la mayoría de los casos imposibilitó *la exploración* y hacia que se centrara más el algoritmo en la explotación entonces, se eliminó este con $C=0$, luego se establecieron los valores $M=7$ y $I=5$. Haciendo un total de $12$ soluciones en cada generación.
 
 ## Resultados
 Luego de varias ejecuciones se comprobó que se lograron simular comportamientos de estas situaciones con éxito.
@@ -176,23 +176,89 @@ Luego de varias ejecuciones se comprobó que se lograron simular comportamientos
 ### Miedo de la zona de peligro
 La diferencia de parámetros en el cálculo de fuerza de repulsión de una persona con respecto a la zona de peligro permite que aún lejos la persona se incline a alejarse en dirección opuesta, huyendo primeramente del peligro sin inicialmente pensar en escapar por la ruta que desea.
 
+<div class="figure">
+  <center>
+    <img src="./img/fear1.jpg">
+    <br>
+    <span>Estado inicial de la simulación.</span>
+  </center>
+  <center>
+    <img src="./img/fear2.jpg">
+    <br>
+    <span>3 segundos luego del inicio de la simulación.</span>
+  </center>
+</div>
+
 ### Sesgo
 Las personas se centran en una zona segura (la que conocen) en algunos casos omitiendo rutas de escape más cortas.
+<div class="figure">
+  <center>
+    <img src="./img/bias1.jpg">
+    <img src="./img/bias2.jpg">
+    <br>
+    <span>En estas imágenes se evidencia un flujo de personas de un lado a otro en la zona central que no ocurriría si se tomara la zona segura más cercana o una sola preferida por persona.</span>
+  </center>
+</div>
+<br>
+<br>
 
 ### Imposición de sus objetivos
 Durante la huida las personas priorizan sus objetivos egoístas entrando en conflicto con otros causando que las personas se empujen unas a otras.
 
-### Huida con éxito
-Después de un tiempo luchando contra otros y huyendo de la bomba se puede observar que cada persona que no se encuentra atrapada puede llegar a la zona segura y por tanto el cálculo de ruta funciona correctamente.
+<div>
+  <div style="margin:0 auto;display:block;">
+    <div style="display:flex; justify-content:center;flex-wrap:wrap">
+      <img src="./img/rough1.jpg" style="margin: 5px" height=350px>
+      <img src="./img/rough2.jpg" style="margin: 5px" height=350px>
+      <img src="./img/rough3.jpg" style="margin: 5px" height=350px>
+    </div>
+  </div>
+  <br>
+  <span style="display:block;text-align:center;">En estas imágenes a los 0.25, 11 y 40.25 segundos de la simulación respectivamente se puede apreciar a una persona (resaltada en naranja) que por su tamaño es desplazada por otras que intentan tomar la misma ruta.</span>
+</div>
+<br>
+<br>
 
 ### Cuellos de botella
-Durante la simulación en espacios estrechos se forman cuellos de botella donde las personas de mayor peso y tamaño se imponen y empujan a otros para pasar.
+Durante la simulación en espacios estrechos se forman cuellos de botella donde las personas de mayor peso y tamaño se imponen y empujan a otros para pasar como se ha demostrado en imágenes anteriores
+
+### Huida con éxito
+Después de un tiempo luchando contra otros y huyendo de la bomba se puede observar que cada persona que no se encuentra atrapada puede llegar a la zona segura y por tanto el cálculo de ruta funciona correctamente.
 
 ### Vulnerabilidades encontradas en zonas estrechas
 Las regiones donde ocurre el fenómeno antes mencionado son detectadas durante la búsqueda de zonas vulnerables sin necesidad de llevar a cabo toda la simulación.
 
+<div style="display:flex; justify-content:center;flex-wrap:wrap">
+  <div style="display:flex; justify-content:center;flex-wrap:wrap; flex-direction:column; width:300px; margin:10px">
+    <img src="./img/gen1.jpg">
+    <br>
+    <span style="display:block;text-align:center;">Iteración no. 1 de la metaheurística.</span>
+  </div>
+  <div style="display:flex; justify-content:center;flex-wrap:wrap; flex-direction:column; width:300px; margin:10px">
+    <img src="./img/gen2.jpg">
+    <br>
+    <span style="display:block;text-align:center;">Iteración no. 3 de la metaheurística.</span>
+  </div>
+  <div style="display:flex; justify-content:center;flex-wrap:wrap; flex-direction:column; width:300px; margin:10px">
+    <img src="./img/gen3.jpg">
+    <br>
+    <span style="display:block;text-align:center;">Iteración no. 4 de la metaheurística.</span>
+  </div>
+  <div style="display:flex; justify-content:center;flex-wrap:wrap; flex-direction:column; width:300px; margin:10px">
+    <img src="./img/gen4.jpg">
+    <br>
+    <span style="display:block;text-align:center;">Iteración no. 8 de la metaheurística.</span>
+  </div>
+</div>
+<br>
+<br>
+
+En la figura anterior se muestra cómo se encuentra una solución hacia el centro que abandona el bloqueo total de algunas rutas por una mayor dificultad en el acceso de otras.
+
 ### Nombres aleatorios
 Se comprobó la utilidad de los modelos ocultos de Markov en la generación de nombres, aunque raros ha demostrado ser una estrategia útil para la esta tarea. Algunos de los nombres de 6 letras generados han sido:
+
+<center>
 
 |||||
 |-|-|-|-|
@@ -213,6 +279,7 @@ nennan | ahlsto | weight | luelan
 efrodd | frumas | yimaha | breats
 kobind | lareed | sussey | burgwa
 
+</center>
 
 ## Referencias
 1.  Dell’Orco, M., Marinelli, M., Ottomanelli, M.: Simulation of crowd dynamics in panic situations using a fuzzy logic-based behavioural model. In: Computer-based Modelling and Optimization in Transportation. pp. 237–250. Springer (2014).
